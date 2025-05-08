@@ -3,6 +3,7 @@ pragma solidity 0.8.24;
 
 import "forge-std/Test.sol";
 import {NFTFacet} from "../contracts/diamond/facets/NFTFacet.sol";
+import {ScrumPokerStorage} from "../contracts/diamond/ScrumPokerStorage.sol";
 
 contract NFTFacetTest is Test {
     NFTFacet nftFacet;
@@ -14,8 +15,9 @@ contract NFTFacetTest is Test {
         nftFacet.initializeNFT("ScrumPokerBadge", "SPB");
     }
 
-    function testInitializeNFTSetsNameAndSymbol() public {
-        (string memory name, string memory symbol) = nftFacet.getBadgeData();
+    function testInitializeNFTSetsNameAndSymbol() public view {
+        string memory name = nftFacet.name();
+        string memory symbol = nftFacet.symbol();
         assertEq(name, "ScrumPokerBadge");
         assertEq(symbol, "SPB");
     }
@@ -52,7 +54,7 @@ contract NFTFacetTest is Test {
         assertEq(nftFacet.getUserToken(user), tokenId);
     }
 
-    function testIsVestedReturnsFalseInitially() public {
+    function testIsVestedReturnsFalseInitially() public view {
         assertFalse(nftFacet.isVested(user));
     }
 
@@ -62,12 +64,23 @@ contract NFTFacetTest is Test {
         vm.prank(user);
         nftFacet.purchaseNFT(userName, externalURI);
         uint256 tokenId = nftFacet.getUserToken(user);
-        (string memory name, string memory symbol) = nftFacet.getBadgeData(tokenId);
-        assertEq(name, "ScrumPokerBadge");
-        assertEq(symbol, "SPB");
+        
+        (string memory retrievedUserName, 
+         address retrievedAddress,
+         uint256 ceremoniesParticipated,
+         uint256 votesCast,
+         ScrumPokerStorage.SprintResult[] memory sprintResults,
+         string memory retrievedExternalURI) = nftFacet.getBadgeData(tokenId);
+        
+        assertEq(retrievedUserName, userName);
+        assertEq(retrievedAddress, user);
+        assertEq(ceremoniesParticipated, 0);
+        assertEq(votesCast, 0);
+        // Não verificamos sprintResults pois deve estar vazio inicialmente
+        assertEq(retrievedExternalURI, externalURI);
     }
 
-    function testGetUserTokenReturnsZeroForNonHolder() public {
+    function testGetUserTokenReturnsZeroForNonHolder() public view {
         assertEq(nftFacet.getUserToken(address(0x9999)), 0);
     }
 }

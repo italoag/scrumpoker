@@ -10,28 +10,43 @@ import "../ScrumPokerStorage.sol";
  * @title AdminFacet
  * @dev Faceta de administração para o contrato ScrumPoker Diamond.
  * Contém funções para gerenciar configurações, pausar/despausar o contrato,
- * e inicializar o armazenamento compartilhado.
+ * controle de acesso baseado em papéis (RBAC) e funcionalidades de emergência.
+ * 
+ * Esta faceta implementa:
+ * - Inicialização do contrato e configurações
+ * - Controle de pausa/despausa do sistema
+ * - Gerenciamento de papéis (admin, price updater, etc)
+ * - Funções de emergência para saques
+ * - Atualização de taxas e parâmetros do sistema
  */
 contract AdminFacet is Initializable {
     using SafeERC20 for IERC20;
 
+    // Eventos para rastreabilidade de ações administrativas
     event ExchangeRateUpdated(uint256 newRate, uint256 timestamp);
     event CotacaoOutdated(uint256 lastUpdated);
-    event ContractPaused(address operator);
-    event ContractUnpaused(address operator);
+    event ContractPaused(address indexed operator);
+    event ContractUnpaused(address indexed operator);
     event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);
     event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);
     event PriceOracleUpdated(address indexed newOracle);
-
+    event VestingPeriodUpdated(uint256 oldPeriod, uint256 newPeriod);
+    event FundsWithdrawn(address indexed to, uint256 amount);
+    event ERC20TokensWithdrawn(address indexed token, address indexed to, uint256 amount);
+    
+    // Erros personalizados para mensagens mais claras
     error NotAuthorized();
     error ZeroAddress();
+    error InsufficientFunds(uint256 requested, uint256 available);
+    error InvalidVestingPeriod();
+    error TransferFailed();
 
     /**
      * @dev Modificador que verifica se o chamador tem um papel específico.
      * @param role O papel a ser verificado.
      */
     modifier onlyRole(bytes32 role) {
-        if (!hasRole(role, msg.sender)) revert NotAuthorized();
+        if (!ScrumPokerStorage.diamondStorage().roles[role][msg.sender]) revert NotAuthorized();
         _;
     }
 
@@ -139,7 +154,17 @@ contract AdminFacet is Initializable {
      * @param account O endereço a ser verificado.
      * @return bool Verdadeiro se o endereço tiver o papel.
      */
-    function hasRole(bytes32 role, address account) public view returns (bool) {
+    function hasRole(bytes32 role, address account) external view returns (bool) {
+        return _hasRole(role, account);
+    }
+    
+    /**
+     * @dev Verificação interna se um endereço tem um papel específico.
+     * @param role O papel a ser verificado.
+     * @param account O endereço a ser verificado.
+     * @return bool Verdadeiro se o endereço tiver o papel.
+     */
+    function _hasRole(bytes32 role, address account) internal view returns (bool) {
         return ScrumPokerStorage.diamondStorage().roles[role][account];
     }
 
@@ -149,6 +174,7 @@ contract AdminFacet is Initializable {
      * @param account O endereço que receberá o papel.
      */
     function _grantRole(bytes32 role, address account) internal {
+        if (account == address(0)) revert ZeroAddress();
         ScrumPokerStorage.diamondStorage().roles[role][account] = true;
         emit RoleGranted(role, account, msg.sender);
     }
@@ -159,6 +185,7 @@ contract AdminFacet is Initializable {
      * @param account O endereço que perderá o papel.
      */
     function _revokeRole(bytes32 role, address account) internal {
+        if (account == address(0)) revert ZeroAddress();
         ScrumPokerStorage.diamondStorage().roles[role][account] = false;
         emit RoleRevoked(role, account, msg.sender);
     }
@@ -180,6 +207,21 @@ contract AdminFacet is Initializable {
     function getVestingPeriod() external view returns (uint256) {
         return ScrumPokerStorage.diamondStorage().vestingPeriod;
     }
+    
+    /**
+     * @notice Atualiza o período de vesting.
+     * @param _newVestingPeriod Novo período de vesting em segundos.
+     * @dev Apenas administradores podem atualizar este parâmetro.
+     */
+    function updateVestingPeriod(uint256 _newVestingPeriod) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
+        if (_newVestingPeriod == 0) revert InvalidVestingPeriod();
+        
+        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
+        uint256 oldPeriod = ds.vestingPeriod;
+        ds.vestingPeriod = _newVestingPeriod;
+        
+        emit VestingPeriodUpdated(oldPeriod, _newVestingPeriod);
+    }
 
     /**
      * @notice Verifica se o contrato está pausado.
@@ -187,5 +229,46 @@ contract AdminFacet is Initializable {
      */
     function isPaused() external view returns (bool) {
         return ScrumPokerStorage.diamondStorage().paused;
+    }
+    
+    /**
+     * @notice Função de emergência para sacar ETH do contrato.
+     * @param _to Endereço para enviar os fundos.
+     * @param _amount Quantidade de ETH a ser retirada. Use 0 para sacar todo o saldo.
+     * @dev Esta função pode ser chamada mesmo quando o contrato está pausado.
+     */
+    function withdrawFunds(address payable _to, uint256 _amount) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
+        if (_to == address(0)) revert ZeroAddress();
+        
+        uint256 balance = address(this).balance;
+        uint256 amountToWithdraw = _amount == 0 ? balance : _amount;
+        
+        if (amountToWithdraw > balance) revert InsufficientFunds(amountToWithdraw, balance);
+        
+        (bool success, ) = _to.call{value: amountToWithdraw}("");
+        if (!success) revert TransferFailed();
+        
+        emit FundsWithdrawn(_to, amountToWithdraw);
+    }
+    
+    /**
+     * @notice Função de emergência para sacar tokens ERC20 do contrato.
+     * @param _token Endereço do contrato de token ERC20.
+     * @param _to Endereço para enviar os tokens.
+     * @param _amount Quantidade de tokens a ser retirada. Use 0 para sacar todo o saldo.
+     * @dev Esta função pode ser chamada mesmo quando o contrato está pausado.
+     */
+    function withdrawERC20(address _token, address _to, uint256 _amount) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
+        if (_token == address(0) || _to == address(0)) revert ZeroAddress();
+        
+        IERC20 token = IERC20(_token);
+        uint256 balance = token.balanceOf(address(this));
+        uint256 amountToWithdraw = _amount == 0 ? balance : _amount;
+        
+        if (amountToWithdraw > balance) revert InsufficientFunds(amountToWithdraw, balance);
+        
+        token.safeTransfer(_to, amountToWithdraw);
+        
+        emit ERC20TokensWithdrawn(_token, _to, amountToWithdraw);
     }
 }

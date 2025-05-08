@@ -45,10 +45,13 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
     }
 
     /**
-     * @dev Inicializa o contrato CeremonyFacet.
+     * @dev Inicializa o contrato CeremonyFacet e verifica/inicializa o versionamento do storage.
      */
     function initializeCeremony() external initializer {
         __ReentrancyGuard_init();
+        
+        // Inicializa ou verifica o storage versionado
+        ScrumPokerStorage.initializeStorage();
     }
 
     /**
@@ -61,21 +64,33 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
         whenNotPaused 
         returns (string memory) 
     {
+        // Verifica se o storage está inicializado e na versão correta
+        ScrumPokerStorage.requireCorrectStorageVersion();
+        
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
         
         // Gera um código único para a cerimônia
         string memory code = string(abi.encodePacked("CEREMONY", uint2str(ds.ceremonyCounter)));
         ds.ceremonyCounter++;
 
-        // Inicializa a estrutura da cerimônia
-        ScrumPokerStorage.Ceremony storage ceremony = ds.ceremonies[code];
+        // Gera o hash do código para usar como chave otimizada
+        bytes32 codeHash = ScrumPokerStorage.registerCeremonyCode(code);
+
+        // Inicializa a estrutura da cerimônia usando o layout de armazenamento otimizado
+        ScrumPokerStorage.Ceremony storage ceremony = ds.ceremoniesByHash[codeHash];
+        ceremony.codeHash = codeHash;
         ceremony.code = code;
         ceremony.sprintNumber = _sprintNumber;
         ceremony.startTime = block.timestamp;
         ceremony.scrumMaster = msg.sender;
         ceremony.active = true;
 
-        ds.ceremonyExists[code] = true;
+        // Marca a cerimônia como existente no formato otimizado
+        ds.ceremonyExists[codeHash] = true;
+        
+        // Mantenha a compatibilidade com código existente (legado)
+        ds.ceremonies[code] = ceremony;
+        ds.ceremonyCodeToHash[code] = codeHash;
         
         // Concede automaticamente o papel de Scrum Master ao criador da cerimônia
         if (!_hasRole(ScrumPokerStorage.SCRUM_MASTER_ROLE, msg.sender)) {
@@ -94,11 +109,22 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
     function requestCeremonyEntry(string memory _code) external whenNotPaused {
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
         
-        if (!ds.ceremonyExists[_code]) revert CeremonyNotFound();
+        // Verifica existência usando a função helper que suporta ambos os formatos
+        if (!ScrumPokerStorage.ceremonyExists(_code)) revert CeremonyNotFound();
         if (ds.userToken[msg.sender] == 0) revert NFTRequired();
-        if (ds.hasRequestedEntry[_code][msg.sender]) revert EntryAlreadyRequested();
+        
+        // Obtém o hash do código para armazenamento otimizado
+        bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
+        
+        // Verifica se já solicitou entrada, verificando primeiro o formato otimizado
+        if (ds.hasRequestedEntry[codeHash][msg.sender] || ds._deprecatedHasRequestedEntry[_code][msg.sender]) revert EntryAlreadyRequested();
 
-        ds.hasRequestedEntry[_code][msg.sender] = true;
+        // Armazena no novo formato otimizado
+        ds.hasRequestedEntry[codeHash][msg.sender] = true;
+        
+        // Mantém retrocompatibilidade
+        ds._deprecatedHasRequestedEntry[_code][msg.sender] = true;
+        
         emit CeremonyEntryRequested(_code, msg.sender);
     }
 
@@ -111,15 +137,34 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
     function approveEntry(string memory _code, address _participant) external whenNotPaused {
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
         
-        if (!ds.ceremonyExists[_code]) revert CeremonyNotFound();
-        if (msg.sender != ds.ceremonies[_code].scrumMaster && !_hasRole(ScrumPokerStorage.ADMIN_ROLE, msg.sender)) {
+        // Verifica se a cerimônia existe usando a função helper
+        if (!ScrumPokerStorage.ceremonyExists(_code)) revert CeremonyNotFound();
+        
+        // Obtém a cerimônia usando o helper que suporta ambos os formatos
+        ScrumPokerStorage.Ceremony storage ceremony = ScrumPokerStorage.getCeremony(_code);
+        
+        // Verifica autorização
+        if (msg.sender != ceremony.scrumMaster && !_hasRole(ScrumPokerStorage.ADMIN_ROLE, msg.sender)) {
             revert NotAuthorized();
         }
-        if (!ds.hasRequestedEntry[_code][_participant]) revert EntryNotRequested();
-        if (ds.ceremonyApproved[_code][_participant]) revert ParticipantAlreadyApproved();
+        
+        // Obtém o hash otimizado
+        bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
+        
+        // Verifica se solicitou entrada
+        if (!ds.hasRequestedEntry[codeHash][_participant] && !ds._deprecatedHasRequestedEntry[_code][_participant]) revert EntryNotRequested();
+        
+        // Verifica se já está aprovado
+        if (ds.ceremonyApproved[codeHash][_participant] || ds._deprecatedCeremonyApproved[_code][_participant]) revert ParticipantAlreadyApproved();
 
-        ds.ceremonyApproved[_code][_participant] = true;
-        ds.ceremonies[_code].participants.push(_participant);
+        // Aprova no formato otimizado
+        ds.ceremonyApproved[codeHash][_participant] = true;
+        
+        // Mantém compatibilidade com o formato legado
+        ds._deprecatedCeremonyApproved[_code][_participant] = true;
+        
+        // Adiciona à lista de participantes e atualiza vesting
+        ceremony.participants.push(_participant);
         ds.vestingStart[_participant] = block.timestamp;
         emit EntryApproved(_code, _participant);
     }
@@ -130,10 +175,12 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
      * Requisito: Apenas o Scrum Master pode concluir a cerimônia.
      */
     function concludeCeremony(string memory _code) external whenNotPaused {
-        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
+        // Verifica se a cerimônia existe usando a função helper
+        if (!ScrumPokerStorage.ceremonyExists(_code)) revert CeremonyNotFound();
         
-        if (!ds.ceremonyExists[_code]) revert CeremonyNotFound();
-        ScrumPokerStorage.Ceremony storage ceremony = ds.ceremonies[_code];
+        // Usa o helper para obter a cerimônia, que funciona tanto com o novo quanto com o formato legado
+        ScrumPokerStorage.Ceremony storage ceremony = ScrumPokerStorage.getCeremony(_code);
+        
         if (!ceremony.active) revert CeremonyNotActive();
         if (msg.sender != ceremony.scrumMaster && !_hasRole(ScrumPokerStorage.ADMIN_ROLE, msg.sender)) {
             revert NotAuthorized();
@@ -158,10 +205,11 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
         bool active,
         address[] memory participants
     ) {
-        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
-        if (!ds.ceremonyExists[_code]) revert CeremonyNotFound();
+        // Verifica existência usando a função helper
+        if (!ScrumPokerStorage.ceremonyExists(_code)) revert CeremonyNotFound();
         
-        ScrumPokerStorage.Ceremony storage ceremony = ds.ceremonies[_code];
+        // Usa o helper para obter a cerimônia do formato adequado
+        ScrumPokerStorage.Ceremony storage ceremony = ScrumPokerStorage.getCeremony(_code);
         return (
             ceremony.code,
             ceremony.sprintNumber,
@@ -179,7 +227,8 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
      * @return bool Verdadeiro se a cerimônia existir.
      */
     function ceremonyExists(string memory _code) external view returns (bool) {
-        return ScrumPokerStorage.diamondStorage().ceremonyExists[_code];
+        // Usa a função helper que verifica ambos os formatos
+        return ScrumPokerStorage.ceremonyExists(_code);
     }
 
     /**
@@ -189,7 +238,11 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
      * @return bool Verdadeiro se o participante solicitou entrada.
      */
     function hasRequestedEntry(string memory _code, address _participant) external view returns (bool) {
-        return ScrumPokerStorage.diamondStorage().hasRequestedEntry[_code][_participant];
+        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
+        
+        // Verifica em ambos os formatos (otimizado e legado)
+        bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHashView(_code);
+        return ds.hasRequestedEntry[codeHash][_participant] || ds._deprecatedHasRequestedEntry[_code][_participant];
     }
 
     /**
@@ -199,7 +252,11 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
      * @return bool Verdadeiro se o participante foi aprovado.
      */
     function isApproved(string memory _code, address _participant) external view returns (bool) {
-        return ScrumPokerStorage.diamondStorage().ceremonyApproved[_code][_participant];
+        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
+        
+        // Verifica em ambos os formatos (otimizado e legado)
+        bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHashView(_code);
+        return ds.ceremonyApproved[codeHash][_participant] || ds._deprecatedCeremonyApproved[_code][_participant];
     }
 
     /**
