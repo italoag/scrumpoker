@@ -13,3 +13,6 @@
 [submodule "packages/foundry/lib/solady"]
 	path = packages/foundry/lib/solady
 	url = https://github.com/vectorized/solady
+[submodule "packages/foundry/lib/solidity-lib"]
+	path = packages/foundry/lib/solidity-lib
+	url = https://github.com/dl-solarity/solidity-lib
