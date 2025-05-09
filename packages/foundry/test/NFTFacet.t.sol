@@ -6,15 +6,7 @@ import {NFTFacet} from "../contracts/diamond/facets/NFTFacet.sol";
 import {ScrumPokerDiamond} from "../contracts/diamond/ScrumPokerDiamond.sol";
 import {ScrumPokerStorage} from "../contracts/diamond/ScrumPokerStorage.sol";
 import {Diamond} from "@solidity-lib/diamond/Diamond.sol";
-
-// Interface minimalista para acessar diamondCut
-interface IDiamondCutMinimal {
-    function diamondCut(
-        Diamond.Facet[] memory facets,
-        address init,
-        bytes memory calldata_
-    ) external;
-}
+import {OwnableDiamond} from "@solidity-lib/presets/diamond/OwnableDiamond.sol";
 
 contract NFTFacetTest is Test {
     NFTFacet nftFacet;
@@ -25,7 +17,7 @@ contract NFTFacetTest is Test {
     // Helper para implementar o diamante
     function _diamondCut(Diamond.Facet[] memory facets, address initFacet, bytes memory initData) internal {
         // Chamamos a função diamondCut que está exposta no ScrumPokerDiamond (herdada de OwnableDiamond)
-        IDiamondCutMinimal(address(scrumPokerDiamond)).diamondCut(facets, initFacet, initData);
+        OwnableDiamond(payable(address(scrumPokerDiamond))).diamondCut(facets, initFacet, initData);
     }
 
     function setUp() public {

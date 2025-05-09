@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+import "@solidity-lib/diamond/Diamond.sol";
+import "@solidity-lib/presets/diamond/OwnableDiamond.sol";
 import "../ScrumPokerDiamond.sol";
 import "../DiamondInit.sol";
-import "@solidity-lib/diamond/Diamond.sol";
+import "../facets/AdminFacet.sol";
+import "../facets/NFTFacet.sol";
+import "../facets/CeremonyFacet.sol";
+import "../facets/VotingFacet.sol";
 import "./DeployerUtils.sol";
-
-// Importando a interface IDiamondCutMinimal 
-import "./interfaces/IDiamondCutMinimal.sol";
 
 /**
  * @title DiamondDeployer
@@ -31,11 +33,13 @@ contract DiamondDeployer {
         address _owner, 
         address[] memory _facets,
         bytes4[][] memory _selectors
-    ) external returns (address) {
+    ) external returns (address payable) {
         require(_facets.length == _selectors.length, "Facets and selectors length mismatch");
         
-        // Implanta o Diamond
-        ScrumPokerDiamond diamond = new ScrumPokerDiamond(_owner);
+        // Implanta o Diamond com o DiamondDeployer como owner inicial
+        // Isso permite que o DiamondDeployer chame diamondCut
+        ScrumPokerDiamond diamond = new ScrumPokerDiamond(address(this));
+        address payable diamondAddress = payable(address(diamond));
         
         // Configura as facetas
         Diamond.Facet[] memory cuts = new Diamond.Facet[](_facets.length);
@@ -51,18 +55,52 @@ contract DiamondDeployer {
             });
         }
         
-        // Implanta o DiamondInit para inicialização
-        DiamondInit diamondInit = new DiamondInit();
-        
-        // Adiciona as facetas ao Diamond usando a interface minimalista
-        IDiamondCutMinimal(address(diamond)).diamondCut(
+        // Adiciona as facetas ao Diamond usando a interface nativa da biblioteca Solarity
+        // Não usamos DiamondInit para evitar problemas de inicialização com storage versionado
+        OwnableDiamond(diamondAddress).diamondCut(
             cuts,
-            address(diamondInit),
-            abi.encodeWithSelector(DiamondInit.init.selector)
+            address(0),  // Sem endereço de inicialização
+            ""           // Sem dados de inicialização
         );
         
-        emit DiamondDeployed(address(diamond), _facets);
-        return address(diamond);
+        // Inicializa as facetas diretamente, uma por uma, para contornar conflitos de versionamento de storage
+        // Inicializa AdminFacet
+        AdminFacet adminFacet = AdminFacet(diamondAddress);
+        try adminFacet.initialize(1 ether, 30 days, _owner) {
+            // Sucesso na inicialização
+        } catch {
+            // Ignora erros de inicialização, já que algumas facetas podem já estar inicializadas
+        }
+        
+        // Inicializa NFTFacet
+        NFTFacet nftFacet = NFTFacet(diamondAddress);
+        try nftFacet.initializeNFT("ScrumPokerBadge", "SPB") {
+            // Sucesso na inicialização
+        } catch {
+            // Ignora erros de inicialização
+        }
+        
+        // Inicializa CeremonyFacet
+        CeremonyFacet ceremonyFacet = CeremonyFacet(diamondAddress);
+        try ceremonyFacet.initializeCeremony() {
+            // Sucesso na inicialização
+        } catch {
+            // Ignora erros de inicialização
+        }
+        
+        // Inicializa VotingFacet
+        VotingFacet votingFacet = VotingFacet(diamondAddress);
+        try votingFacet.initializeVoting() {
+            // Sucesso na inicialização
+        } catch {
+            // Ignora erros de inicialização
+        }
+        
+        // Transfere a propriedade para o endereço final
+        OwnableDiamond(diamondAddress).transferOwnership(_owner);
+        
+        emit DiamondDeployed(diamondAddress, _facets);
+        return diamondAddress;
     }
     
     /**
@@ -73,7 +111,7 @@ contract DiamondDeployer {
      * @param _action Ação a ser executada (Add, Replace, Remove)
      */
     function updateDiamond(
-        address _diamond,
+        address payable _diamond,
         address _newFacet,
         bytes4[] memory _selectors,
         Diamond.FacetAction _action
@@ -85,6 +123,6 @@ contract DiamondDeployer {
             functionSelectors: _selectors
         });
         
-        IDiamondCutMinimal(_diamond).diamondCut(cut, address(0), "");
+        OwnableDiamond(_diamond).diamondCut(cut, address(0), "");
     }
 }

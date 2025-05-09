@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -20,14 +21,14 @@ import "../library/ValidationUtils.sol";
  * - Funções de emergência para saques
  * - Atualização de taxas e parâmetros do sistema
  */
-contract AdminFacet is Initializable {
+contract AdminFacet is Initializable, ReentrancyGuardUpgradeable {
     using SafeERC20 for IERC20;
     using ValidationUtils for address;
     using ValidationUtils for uint256;
 
     // Eventos para rastreabilidade de ações administrativas
     event ExchangeRateUpdated(uint256 newRate, uint256 timestamp);
-    event CotacaoOutdated(uint256 lastUpdated);
+    event QuoteOutdated(uint256 lastUpdated);
     event ContractPaused(address indexed operator);
     event ContractUnpaused(address indexed operator);
     event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);
@@ -100,7 +101,7 @@ contract AdminFacet is Initializable {
      * @notice Atualiza a cotação do token nativo para 1 dólar.
      * @param newRate Novo valor (em wei) equivalente a 1 dólar.
      */
-    function updateExchangeRate(uint256 newRate) external onlyRole(ScrumPokerStorage.PRICE_UPDATER_ROLE) {
+    function updateExchangeRate(uint256 newRate) external nonReentrant onlyRole(ScrumPokerStorage.PRICE_UPDATER_ROLE) {
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
         ds.exchangeRate = newRate;
         ds.lastExchangeRateUpdate = block.timestamp;
@@ -111,7 +112,7 @@ contract AdminFacet is Initializable {
      * @notice Define o endereço do oráculo de preços.
      * @param _priceOracle Endereço do oráculo de preços.
      */
-    function setPriceOracle(address _priceOracle) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
+    function setPriceOracle(address _priceOracle) external nonReentrant onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
         ValidationUtils.requireNotZeroAddress(_priceOracle, "Price oracle address cannot be zero");
         ScrumPokerStorage.diamondStorage().priceOracle = _priceOracle;
         emit PriceOracleUpdated(_priceOracle);
@@ -120,7 +121,7 @@ contract AdminFacet is Initializable {
     /**
      * @notice Pausa o contrato em caso de emergência.
      */
-    function pause() external onlyRole(ScrumPokerStorage.ADMIN_ROLE) whenNotPaused {
+    function pause() external nonReentrant onlyRole(ScrumPokerStorage.ADMIN_ROLE) whenNotPaused {
         ScrumPokerStorage.diamondStorage().paused = true;
         emit ContractPaused(msg.sender);
     }
@@ -128,7 +129,7 @@ contract AdminFacet is Initializable {
     /**
      * @notice Despausa o contrato após uma emergência.
      */
-    function unpause() external onlyRole(ScrumPokerStorage.ADMIN_ROLE) whenPaused {
+    function unpause() external nonReentrant onlyRole(ScrumPokerStorage.ADMIN_ROLE) whenPaused {
         ScrumPokerStorage.diamondStorage().paused = false;
         emit ContractUnpaused(msg.sender);
     }
@@ -138,7 +139,7 @@ contract AdminFacet is Initializable {
      * @param role O papel a ser concedido.
      * @param account O endereço que receberá o papel.
      */
-    function grantRole(bytes32 role, address account) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
+    function grantRole(bytes32 role, address account) external nonReentrant onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
         _grantRole(role, account);
     }
 
@@ -147,7 +148,7 @@ contract AdminFacet is Initializable {
      * @param role O papel a ser revogado.
      * @param account O endereço que perderá o papel.
      */
-    function revokeRole(bytes32 role, address account) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
+    function revokeRole(bytes32 role, address account) external nonReentrant onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
         _revokeRole(role, account);
     }
 
@@ -216,7 +217,7 @@ contract AdminFacet is Initializable {
      * @param _newVestingPeriod Novo período de vesting em segundos.
      * @dev Apenas administradores podem atualizar este parâmetro.
      */
-    function updateVestingPeriod(uint256 _newVestingPeriod) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
+    function updateVestingPeriod(uint256 _newVestingPeriod) external nonReentrant onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
         ValidationUtils.requireGreaterThanZero(_newVestingPeriod, "Vesting period must be greater than zero");
         
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
@@ -240,7 +241,7 @@ contract AdminFacet is Initializable {
      * @param _amount Quantidade de ETH a ser retirada. Use 0 para sacar todo o saldo.
      * @dev Esta função pode ser chamada mesmo quando o contrato está pausado.
      */
-    function withdrawFunds(address payable _to, uint256 _amount) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
+    function withdrawFunds(address payable _to, uint256 _amount) external nonReentrant onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
         ValidationUtils.requireNotZeroAddress(_to, "Recipient address cannot be zero");
         
         uint256 balance = address(this).balance;
@@ -261,7 +262,7 @@ contract AdminFacet is Initializable {
      * @param _amount Quantidade de tokens a ser retirada. Use 0 para sacar todo o saldo.
      * @dev Esta função pode ser chamada mesmo quando o contrato está pausado.
      */
-    function withdrawERC20(address _token, address _to, uint256 _amount) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
+    function withdrawERC20(address _token, address _to, uint256 _amount) external nonReentrant onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
         ValidationUtils.requireNotZeroAddress(_token, "Token address cannot be zero");
         ValidationUtils.requireNotZeroAddress(_to, "Recipient address cannot be zero");
         

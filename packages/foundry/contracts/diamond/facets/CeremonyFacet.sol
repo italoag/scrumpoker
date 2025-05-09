@@ -21,6 +21,8 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
     event CeremonyEntryRequested(string ceremonyCode, address indexed participant);
     event EntryApproved(string ceremonyCode, address indexed participant);
     event CeremonyConcluded(string ceremonyCode, uint256 endTime, uint256 sprintNumber);
+    // Evento para controle de acesso
+    event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);
 
     // Erros
     error CeremonyNotFound();
@@ -30,15 +32,31 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
     error ParticipantAlreadyApproved();
     error NFTRequired();
     error CeremonyNotActive();
-    event CeremonyCreated(string ceremonyCode, uint256 sprintNumber);
+
 
     /**
-     * @dev Modificador que verifica se o chamador tem um papel específico.
-     * @param role O papel a ser verificado.
+     * @dev Converte um uint para string.
+     * @param _i O número a ser convertido.
+     * @return O número como string.
      */
-    modifier onlyRole(bytes32 role) {
-        if (!_hasRole(role, msg.sender)) revert NotAuthorized();
-        _;
+    function uint2str(uint256 _i) internal pure returns (string memory) {
+        if (_i == 0) {
+            return "0";
+        }
+        uint256 j = _i;
+        uint256 length = 0; // Inicialização explícita para melhorar a legibilidade e evitar problemas
+        while (j != 0) {
+            length++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(length);
+        uint256 k = length;
+        j = _i;
+        while (j != 0) {
+            bstr[--k] = bytes1(uint8(48 + j % 10));
+            j /= 10;
+        }
+        return string(bstr);
     }
 
     /**
@@ -77,10 +95,17 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
         // Gera um código único para a cerimônia
         // Uso de abi.encode para prevenir colisões de hash
         string memory code = string(abi.encode("CEREMONY", uint2str(ds.ceremonyCounter)));
-        ds.ceremonyCounter++;
-
+        
         // Gera o hash do código para usar como chave otimizada
         bytes32 codeHash = ScrumPokerStorage.registerCeremonyCode(code);
+        
+        // Verificação de segurança - garante que o código não existe já
+        // Verifica tanto no formato otimizado quanto no formato legado
+        if (ds.ceremonyExists[codeHash] || ds._deprecatedCeremonyExists[code]) {
+            revert ScrumPokerStorage.CeremonyAlreadyExists(code);
+        }
+        
+        ds.ceremonyCounter++;
 
         // Inicializa a estrutura da cerimônia usando o layout de armazenamento otimizado
         ScrumPokerStorage.Ceremony storage ceremony = ds.ceremoniesByHash[codeHash];
@@ -285,31 +310,4 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
         emit RoleGranted(role, account, msg.sender);
     }
 
-    /**
-     * @dev Converte um uint para string.
-     * @param _i O número a ser convertido.
-     * @return O número como string.
-     */
-    function uint2str(uint256 _i) internal pure returns (string memory) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint256 j = _i;
-        uint256 length = 0; // Inicialização explícita para melhorar a legibilidade e evitar problemas
-        while (j != 0) {
-            length++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(length);
-        uint256 k = length;
-        j = _i;
-        while (j != 0) {
-            bstr[--k] = bytes1(uint8(48 + j % 10));
-            j /= 10;
-        }
-        return string(bstr);
-    }
-
-    // Evento para controle de acesso
-    event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);
 }

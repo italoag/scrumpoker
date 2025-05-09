@@ -168,7 +168,7 @@ contract ScrumPoker is
 
     // ****************** Eventos para Auditoria e Transparência ******************
 
-    event CotacaoOutdated(uint256 lastUpdated);
+    event QuoteOutdated(uint256 lastUpdated);
     event ExchangeRateUpdated(uint256 newRate, uint256 timestamp);
     event NFTPurchased(address indexed buyer, uint256 tokenId, uint256 amountPaid);
     event FundsTransferred(address owner, uint256 amount);
@@ -223,12 +223,12 @@ contract ScrumPoker is
      * @param _userName Nome do usuário.
      * @param _externalURI URI para metadados externos (ex.: imagem/avatar).
      *
-     * Se a cotação não foi atualizada há mais de 24 horas, emite o evento `CotacaoOutdated`.
+     * Se a cotação não foi atualizada há mais de 24 horas, emite o evento `QuoteOutdated`.
      * Após a verificação, os fundos são transferidos imediatamente para o owner e o NFT é mintado.
      */
     function purchaseNFT(string memory _userName, string memory _externalURI) external payable nonReentrant {
         if (block.timestamp > lastExchangeRateUpdate + 86400) {
-            emit CotacaoOutdated(lastExchangeRateUpdate);
+            emit QuoteOutdated(lastExchangeRateUpdate);
         }
         require(msg.value == exchangeRate, "Valor incorreto para 1 dolar");
         require(userToken[msg.sender] == 0, "NFT ja adquirida");

@@ -13,7 +13,7 @@ library CeremonyFacetSelectors {
      * @return Array de seletores como bytes4[]
      */
     function getSelectors() internal pure returns (bytes4[] memory) {
-        bytes4[] memory selectors = new bytes4[](10);
+        bytes4[] memory selectors = new bytes4[](9);
         selectors[0] = CeremonyFacet.initializeCeremony.selector;
         selectors[1] = CeremonyFacet.startCeremony.selector;
         selectors[2] = CeremonyFacet.requestCeremonyEntry.selector;
@@ -23,7 +23,6 @@ library CeremonyFacetSelectors {
         selectors[6] = CeremonyFacet.ceremonyExists.selector;
         selectors[7] = CeremonyFacet.hasRequestedEntry.selector;
         selectors[8] = CeremonyFacet.isApproved.selector;
-        selectors[9] = CeremonyFacet.getCeremony.selector;
         return selectors;
     }
 }

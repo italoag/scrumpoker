@@ -20,6 +20,7 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
     event VoteCast(string ceremonyCode, address indexed participant, uint256 voteValue);
     event FunctionalityVoteOpened(string ceremonyCode, string functionalityCode, uint256 sessionIndex);
     event FunctionalityVoteCast(string ceremonyCode, uint256 sessionIndex, address indexed participant, uint256 voteValue);
+    event FunctionalityVoteClosed(string ceremonyCode, uint256 sessionIndex, address indexed closer);
     event NFTBadgeUpdated(address indexed participant, uint256 tokenId, uint256 sprintNumber);
 
     // Erros
@@ -31,15 +32,6 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
     error NFTNotVested();
     error SessionNotFound();
     error SessionNotActive();
-
-    /**
-     * @dev Modificador que verifica se o chamador tem um papel específico.
-     * @param role O papel a ser verificado.
-     */
-    modifier onlyRole(bytes32 role) {
-        if (!_hasRole(role, msg.sender)) revert NotAuthorized();
-        _;
-    }
 
     /**
      * @dev Modificador que verifica se o contrato não está pausado.
@@ -295,6 +287,9 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
         
         // Se não encontrou a sessão em nenhum formato, reverte
         if (!sessionExists) revert SessionNotFound();
+        
+        // Emite evento de encerramento da votação
+        emit FunctionalityVoteClosed(_code, _sessionIndex, msg.sender);
     }
 
     /**

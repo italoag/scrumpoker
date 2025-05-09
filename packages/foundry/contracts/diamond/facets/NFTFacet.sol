@@ -31,7 +31,7 @@ contract NFTFacet is
     event NFTPurchased(address indexed buyer, uint256 tokenId, uint256 amountPaid);
     event FundsWithdrawn(address indexed owner, uint256 amount);
     event NFTBadgeMinted(address indexed participant, uint256 tokenId, uint256 sprintNumber);
-    event CotacaoOutdated(uint256 lastUpdated);
+    event QuoteOutdated(uint256 lastUpdated);
 
     // Erros
     error IncorrectPaymentAmount();
@@ -75,7 +75,7 @@ contract NFTFacet is
      * @param _userName Nome do usuário.
      * @param _externalURI URI para metadados externos (ex.: imagem/avatar).
      *
-     * Se a cotação não foi atualizada há mais de 24 horas, emite o evento `CotacaoOutdated`.
+     * Se a cotação não foi atualizada há mais de 24 horas, emite o evento `QuoteOutdated`.
      * Os fundos são mantidos no contrato para posterior retirada pelo owner (padrão de retirada).
      */
     function purchaseNFT(string memory _userName, string memory _externalURI) 
@@ -87,7 +87,7 @@ contract NFTFacet is
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
         
         // Verifica se a cotação está atualizada
-        _checkCotacaoOutdated(ds.lastExchangeRateUpdate);
+        _checkQuoteOutdated(ds.lastExchangeRateUpdate);
         
         // Verifica o valor enviado
         if (msg.value != ds.exchangeRate) revert IncorrectPaymentAmount();
@@ -186,9 +186,9 @@ contract NFTFacet is
      * @dev Função interna para verificar se a cotação está desatualizada e emitir o evento.
      * @param lastUpdate Timestamp da última atualização da cotação.
      */
-    function _checkCotacaoOutdated(uint256 lastUpdate) internal {
+    function _checkQuoteOutdated(uint256 lastUpdate) internal {
         if (block.timestamp > lastUpdate + 86400) {
-            emit CotacaoOutdated(lastUpdate);
+            emit QuoteOutdated(lastUpdate);
         }
     }
 
@@ -210,6 +210,7 @@ contract NFTFacet is
      */
     function updateBadgeForSprint(address _participant, uint256 _tokenId, uint256 _sprintNumber) 
         external 
+        nonReentrant
         onlyRole(ScrumPokerStorage.ADMIN_ROLE) 
     {
         emit NFTBadgeMinted(_participant, _tokenId, _sprintNumber);
