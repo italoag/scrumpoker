@@ -4,6 +4,8 @@ pragma solidity 0.8.24;
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../ScrumPokerStorage.sol";
+import "../library/StringUtils.sol";
+import "../library/ValidationUtils.sol";
 
 /**
  * @title CeremonyFacet
@@ -11,6 +13,9 @@ import "../ScrumPokerStorage.sol";
  * Implementa a criação de cerimônias, solicitação de entrada e aprovação de participantes.
  */
 contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
+    using StringUtils for string;
+    using ValidationUtils for address;
+    using ValidationUtils for uint256;
     // Eventos
     event CeremonyStarted(string ceremonyCode, uint256 sprintNumber, uint256 startTime, address indexed scrumMaster);
     event CeremonyEntryRequested(string ceremonyCode, address indexed participant);
@@ -70,7 +75,8 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
         
         // Gera um código único para a cerimônia
-        string memory code = string(abi.encodePacked("CEREMONY", uint2str(ds.ceremonyCounter)));
+        // Uso de abi.encode para prevenir colisões de hash
+        string memory code = string(abi.encode("CEREMONY", uint2str(ds.ceremonyCounter)));
         ds.ceremonyCounter++;
 
         // Gera o hash do código para usar como chave otimizada
@@ -289,7 +295,7 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
             return "0";
         }
         uint256 j = _i;
-        uint256 length;
+        uint256 length = 0; // Inicialização explícita para melhorar a legibilidade e evitar problemas
         while (j != 0) {
             length++;
             j /= 10;

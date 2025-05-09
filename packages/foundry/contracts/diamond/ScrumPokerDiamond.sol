@@ -5,23 +5,31 @@ import "@solidity-lib/diamond/Diamond.sol";
 import "@solidity-lib/presets/diamond/OwnableDiamond.sol";
 import "@solidity-lib/diamond/utils/DiamondERC165.sol";
 import "./ScrumPokerStorage.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 /**
  * @title ScrumPokerDiamond
  * @dev Implementação do contrato principal ScrumPoker usando o padrão Diamond (EIP-2535)
  * com a biblioteca Solarity 3.1. Este contrato atua como proxy que delega chamadas
  * para várias facetas (contratos de implementação).
+ * Inclui proteção contra ataques de reentrância nos métodos que envolvem transferência de ETH.
  */
-contract ScrumPokerDiamond is OwnableDiamond, DiamondERC165 {
+contract ScrumPokerDiamond is OwnableDiamond, DiamondERC165, ReentrancyGuardUpgradeable {
     // Eventos do contrato principal
     event EtherReceived(address indexed sender, uint256 amount);
     event MaxContributionUpdated(uint256 oldLimit, uint256 newLimit);
+    event EtherWithdrawn(address indexed to, uint256 amount);
     
     // Limite máximo de contribuição em ETH (10 ETH inicialmente)
     uint256 public maxContribution = 10 ether;
     
     // Erro personalizado para contribuições acima do limite
     error ContributionTooLarge(uint256 sent, uint256 maxAllowed);
+    error WithdrawalFailed();
+    error ReentrancyGuardError();
+    
+    // Variável para prevenir reentrância
+    bool private _locked;
 
     /**
      * @dev Construtor que inicializa o contrato Diamond.
@@ -61,6 +69,30 @@ contract ScrumPokerDiamond is OwnableDiamond, DiamondERC165 {
         super._beforeFallback(facet_, selector_);
     }
     
+    /**
+     * @dev Permite ao owner sacar Ether do contrato.
+     * @param _to Endereço para enviar o Ether.
+     * @param _amount Quantidade de Ether a ser enviada (em wei).
+     * 
+     * Se _amount for zero, todo o saldo será enviado.
+     * Esta função só pode ser chamada pelo owner e está protegida contra reentrância.
+     */
+    function withdrawEther(address payable _to, uint256 _amount) external nonReentrant onlyOwner {
+        // Checks: Verificações
+        require(_to != address(0), "Cannot withdraw to zero address");
+        
+        uint256 amount = _amount == 0 ? address(this).balance : _amount;
+        require(amount <= address(this).balance, "Insufficient balance");
+        
+        // Effects: já aplicados pelo modificador nonReentrant
+        
+        // Interactions: Transferência externa
+        (bool success, ) = _to.call{value: amount}("");
+        if (!success) revert WithdrawalFailed();
+        
+        emit EtherWithdrawn(_to, amount);
+    }
+
     /**
      * @notice Define o limite máximo de contribuição em ETH.
      * @param _newLimit Novo limite máximo de contribuição.

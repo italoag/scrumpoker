@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../ScrumPokerStorage.sol";
+import "../library/ValidationUtils.sol";
 
 /**
  * @title AdminFacet
@@ -21,6 +22,8 @@ import "../ScrumPokerStorage.sol";
  */
 contract AdminFacet is Initializable {
     using SafeERC20 for IERC20;
+    using ValidationUtils for address;
+    using ValidationUtils for uint256;
 
     // Eventos para rastreabilidade de ações administrativas
     event ExchangeRateUpdated(uint256 newRate, uint256 timestamp);
@@ -77,7 +80,7 @@ contract AdminFacet is Initializable {
         uint256 _vestingPeriod,
         address _admin
     ) external initializer {
-        if (_admin == address(0)) revert ZeroAddress();
+        ValidationUtils.requireNotZeroAddress(_admin, "Admin address cannot be zero");
         
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
         
@@ -109,7 +112,7 @@ contract AdminFacet is Initializable {
      * @param _priceOracle Endereço do oráculo de preços.
      */
     function setPriceOracle(address _priceOracle) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
-        if (_priceOracle == address(0)) revert ZeroAddress();
+        ValidationUtils.requireNotZeroAddress(_priceOracle, "Price oracle address cannot be zero");
         ScrumPokerStorage.diamondStorage().priceOracle = _priceOracle;
         emit PriceOracleUpdated(_priceOracle);
     }
@@ -174,7 +177,7 @@ contract AdminFacet is Initializable {
      * @param account O endereço que receberá o papel.
      */
     function _grantRole(bytes32 role, address account) internal {
-        if (account == address(0)) revert ZeroAddress();
+        ValidationUtils.requireNotZeroAddress(account, "Account address cannot be zero");
         ScrumPokerStorage.diamondStorage().roles[role][account] = true;
         emit RoleGranted(role, account, msg.sender);
     }
@@ -185,7 +188,7 @@ contract AdminFacet is Initializable {
      * @param account O endereço que perderá o papel.
      */
     function _revokeRole(bytes32 role, address account) internal {
-        if (account == address(0)) revert ZeroAddress();
+        ValidationUtils.requireNotZeroAddress(account, "Account address cannot be zero");
         ScrumPokerStorage.diamondStorage().roles[role][account] = false;
         emit RoleRevoked(role, account, msg.sender);
     }
@@ -214,7 +217,7 @@ contract AdminFacet is Initializable {
      * @dev Apenas administradores podem atualizar este parâmetro.
      */
     function updateVestingPeriod(uint256 _newVestingPeriod) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
-        if (_newVestingPeriod == 0) revert InvalidVestingPeriod();
+        ValidationUtils.requireGreaterThanZero(_newVestingPeriod, "Vesting period must be greater than zero");
         
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
         uint256 oldPeriod = ds.vestingPeriod;
@@ -238,7 +241,7 @@ contract AdminFacet is Initializable {
      * @dev Esta função pode ser chamada mesmo quando o contrato está pausado.
      */
     function withdrawFunds(address payable _to, uint256 _amount) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
-        if (_to == address(0)) revert ZeroAddress();
+        ValidationUtils.requireNotZeroAddress(_to, "Recipient address cannot be zero");
         
         uint256 balance = address(this).balance;
         uint256 amountToWithdraw = _amount == 0 ? balance : _amount;
@@ -259,7 +262,8 @@ contract AdminFacet is Initializable {
      * @dev Esta função pode ser chamada mesmo quando o contrato está pausado.
      */
     function withdrawERC20(address _token, address _to, uint256 _amount) external onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
-        if (_token == address(0) || _to == address(0)) revert ZeroAddress();
+        ValidationUtils.requireNotZeroAddress(_token, "Token address cannot be zero");
+        ValidationUtils.requireNotZeroAddress(_to, "Recipient address cannot be zero");
         
         IERC20 token = IERC20(_token);
         uint256 balance = token.balanceOf(address(this));

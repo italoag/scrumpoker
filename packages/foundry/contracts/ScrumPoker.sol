@@ -270,7 +270,8 @@ contract ScrumPoker is
      * @return code Código único gerado para a cerimônia.
      */
     function startCeremony(uint256 _sprintNumber) external returns (string memory) {
-        string memory code = string(abi.encodePacked("CEREMONY", uint2str(ceremonyCounter)));
+        // Uso de abi.encode para prevenir colisões de hash
+        string memory code = string(abi.encode("CEREMONY", uint2str(ceremonyCounter)));
         ceremonyCounter++;
 
         Ceremony storage ceremony = ceremonies[code];

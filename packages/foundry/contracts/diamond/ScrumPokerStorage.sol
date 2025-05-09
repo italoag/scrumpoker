@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "./library/StringUtils.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
@@ -18,6 +19,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
  */
 library ScrumPokerStorage {
     using SafeERC20 for IERC20;
+    using StringUtils for string;
     
     // Posições fixas e constantes do armazenamento
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("scrumpoker.storage.diamond");
@@ -175,22 +177,13 @@ library ScrumPokerStorage {
     }
     
     /**
-     * @dev Converte uma string para um bytes32 para uso como chave de mapeamento.
-     * @param str String a ser convertida em bytes32.
-     * @return Representação em bytes32 da string.
-     */
-    function stringToBytes32(string memory str) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(str));
-    }
-    
-    /**
      * @dev Registra o hash de um código de cerimônia para posterior consulta.
      * @param code Código da cerimônia.
      * @return Hash do código em formato bytes32.
      */
     function registerCeremonyCode(string memory code) internal returns (bytes32) {
         DiamondStorage storage ds = diamondStorage();
-        bytes32 codeHash = stringToBytes32(code);
+        bytes32 codeHash = code.stringToBytes32();
         ds.ceremonyCodeToHash[code] = codeHash;
         return codeHash;
     }
@@ -223,7 +216,7 @@ library ScrumPokerStorage {
         
         // Se o hash não está registrado, calcule-o sem armazenar
         if (codeHash == bytes32(0)) {
-            codeHash = stringToBytes32(code);
+            codeHash = code.stringToBytes32();
         }
         
         return codeHash;
@@ -354,7 +347,9 @@ library ScrumPokerStorage {
         newCeremony.active = legacyCeremony.active;
         
         // Copiar a lista de participantes
-        for (uint256 i = 0; i < legacyCeremony.participants.length; i++) {
+        // Armazenando o tamanho do array em uma variável local para economizar gas
+        uint256 participantsLength = legacyCeremony.participants.length;
+        for (uint256 i = 0; i < participantsLength; i++) {
             newCeremony.participants.push(legacyCeremony.participants[i]);
         }
         

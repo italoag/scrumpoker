@@ -4,6 +4,7 @@ pragma solidity 0.8.24;
 import "forge-std/Test.sol";
 import {AdminFacet} from "../contracts/diamond/facets/AdminFacet.sol";
 import {ScrumPokerStorage} from "../contracts/diamond/ScrumPokerStorage.sol";
+import {ValidationUtils} from "../contracts/diamond/library/ValidationUtils.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // Mock IERC20 para testes
@@ -216,7 +217,8 @@ contract AdminFacetTest is Test {
     // Testa atualização inválida (zero) do período de vesting
     function testUpdateVestingPeriodWithZeroReverts() public {
         vm.prank(owner);
-        vm.expectRevert(abi.encodeWithSelector(AdminFacet.InvalidVestingPeriod.selector));
+        // Agora usando o erro da biblioteca ValidationUtils para valores não positivos
+        vm.expectRevert("Vesting period must be greater than zero");
         adminFacet.updateVestingPeriod(0);
     }
     

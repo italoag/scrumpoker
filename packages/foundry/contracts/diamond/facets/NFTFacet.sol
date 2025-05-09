@@ -8,6 +8,8 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URISto
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../ScrumPokerStorage.sol";
+import "../library/StringUtils.sol";
+import "../library/ValidationUtils.sol";
 
 /**
  * @title NFTFacet
@@ -21,6 +23,9 @@ contract NFTFacet is
     ReentrancyGuardUpgradeable 
 {
     using SafeERC20 for IERC20;
+    using StringUtils for string;
+    using ValidationUtils for address;
+    using ValidationUtils for uint256;
 
     // Eventos
     event NFTPurchased(address indexed buyer, uint256 tokenId, uint256 amountPaid);
@@ -112,7 +117,7 @@ contract NFTFacet is
      * @notice Permite ao owner retirar os fundos acumulados no contrato.
      * Implementa o padrão de retirada (withdrawal pattern) para maior segurança.
      */
-    function withdrawFunds() external onlyRole(ScrumPokerStorage.ADMIN_ROLE) nonReentrant {
+    function withdrawFunds() external nonReentrant onlyRole(ScrumPokerStorage.ADMIN_ROLE) {
         uint256 amount = address(this).balance;
         (bool success, ) = payable(msg.sender).call{value: amount}("");
         if (!success) revert WithdrawalFailed();

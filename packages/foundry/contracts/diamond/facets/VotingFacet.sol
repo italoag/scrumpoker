@@ -4,6 +4,8 @@ pragma solidity 0.8.24;
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../ScrumPokerStorage.sol";
+import "../library/StringUtils.sol";
+import "../library/ValidationUtils.sol";
 
 /**
  * @title VotingFacet
@@ -11,6 +13,9 @@ import "../ScrumPokerStorage.sol";
  * Implementa a votação geral, votação de funcionalidades e atualização dos badges NFT.
  */
 contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
+    using StringUtils for string;
+    using ValidationUtils for address;
+    using ValidationUtils for uint256;
     // Eventos
     event VoteCast(string ceremonyCode, address indexed participant, uint256 voteValue);
     event FunctionalityVoteOpened(string ceremonyCode, string functionalityCode, uint256 sessionIndex);
@@ -144,7 +149,7 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
         ScrumPokerStorage.FunctionalityVoteSession storage session = ds.functionalityVoteSessions[codeHash][sessionIndex];
         
         // Configura os campos da sessão, incluindo o hash do código da funcionalidade
-        bytes32 functionalityHash = ScrumPokerStorage.stringToBytes32(_functionalityCode);
+        bytes32 functionalityHash = _functionalityCode.stringToBytes32();
         session.functionalityCodeHash = functionalityHash;
         session.functionalityCode = _functionalityCode;
         session.active = true;
@@ -200,6 +205,7 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
             
             // Se encontrado no formato legado, migra para o otimizado
             if (ds.functionalityVoteSessions[codeHash].length == 0) {
+                // Nota: Manter o acesso direto ao length para evitar Stack too deep
                 for (uint256 i = 0; i < ds._deprecatedFunctionalitySessions[_code].length; i++) {
                     ScrumPokerStorage.FunctionalityVoteSession storage legacySession = ds._deprecatedFunctionalitySessions[_code][i];
                     
@@ -207,7 +213,7 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
                     ds.functionalityVoteSessions[codeHash].push();
                     ScrumPokerStorage.FunctionalityVoteSession storage newSession = ds.functionalityVoteSessions[codeHash][i];
                     
-                    bytes32 functionalityHash = ScrumPokerStorage.stringToBytes32(legacySession.functionalityCode);
+                    bytes32 functionalityHash = legacySession.functionalityCode.stringToBytes32();
                     newSession.functionalityCodeHash = functionalityHash;
                     newSession.functionalityCode = legacySession.functionalityCode;
                     newSession.active = legacySession.active;
@@ -296,7 +302,7 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
      * @param _code Código único da cerimônia.
      * Requisito: A cerimônia deve estar concluída.
      */
-    function updateBadges(string memory _code) external whenNotPaused nonReentrant {
+    function updateBadges(string memory _code) external nonReentrant whenNotPaused {
         // Verifica se o storage está na versão correta
         ScrumPokerStorage.requireCorrectStorageVersion();
         
@@ -315,6 +321,7 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
         // Obtém o hash do código para uso no formato otimizado
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
 
+        // Nota: Manter o acesso direto ao length para evitar Stack too deep
         for (uint256 i = 0; i < ceremony.participants.length; i++) {
             address participant = ceremony.participants[i];
             uint256 tokenId = ds.userToken[participant];
