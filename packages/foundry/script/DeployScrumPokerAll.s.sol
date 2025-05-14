@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import "./DeployHelpers.s.sol";
+import "./DeployHelper.s.sol";
 import "../contracts/diamond/ScrumPokerDeployer.sol";
 
 /**
@@ -12,20 +12,20 @@ import "../contracts/diamond/ScrumPokerDeployer.sol";
  * yarn deploy --file DeployScrumPokerAll.s.sol  # local anvil chain
  * yarn deploy --file DeployScrumPokerAll.s.sol --network polygon # live network (requires keystore)
  */
-contract DeployScrumPokerAll is ScaffoldETHDeploy {
+contract DeployScrumPokerAll is DeployHelper {
     /**
      * @dev Deployer setup based on `ETH_KEYSTORE_ACCOUNT` in `.env`
-     * Note: Must use ScaffoldEthDeployerRunner modifier to:
+     * Note: Must use DeployerRunner modifier to:
      *      - Setup correct `deployer` account and fund it
      *      - Export contract addresses & ABIs to `nextjs` packages
      */
-    function run() external ScaffoldEthDeployerRunner {
+    function run() external DeployerRunner {
         // Deploy the ScrumPokerDeployer contract
         ScrumPokerDeployer scrumDeployer = new ScrumPokerDeployer();
         console.log("ScrumPokerDeployer deployed at:", address(scrumDeployer));
 
         // Deploy all ScrumPoker contracts using the deployer
-        // Usamos a variável deployer herdada do ScaffoldETHDeploy como owner
+        // Usamos a variável deployer herdada do DeployHelper como owner
         address diamondAddress = scrumDeployer.deployAll(deployer);
         console.log("ScrumPokerDiamond deployed at:", diamondAddress);
         

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import "./DeployHelpers.s.sol";
+import "./DeployHelper.s.sol";
 import "../contracts/diamond/ScrumPokerDiamond.sol";
 import "../contracts/diamond/DiamondInit.sol";
 import "../contracts/diamond/facets/AdminFacet.sol";
@@ -23,7 +23,7 @@ import { OwnableDiamond } from "@solidity-lib/presets/diamond/OwnableDiamond.sol
  * yarn deploy --file DeployScrumPokerManual.s.sol  # local anvil chain
  * yarn deploy --file DeployScrumPokerManual.s.sol --network polygon # live network (requires keystore)
  */
-contract DeployScrumPokerManual is ScaffoldETHDeploy {
+contract DeployScrumPokerManual is DeployHelper {
     // Storage for deployed contract addresses
     address payable public diamondAddress;
     address public adminFacetAddress;
@@ -34,11 +34,11 @@ contract DeployScrumPokerManual is ScaffoldETHDeploy {
     
     /**
      * @dev Deployer setup based on `ETH_KEYSTORE_ACCOUNT` in `.env`
-     * Note: Must use ScaffoldEthDeployerRunner modifier to:
+     * Note: Must use DeployerRunner modifier to:
      *      - Setup correct `deployer` account and fund it
      *      - Export contract addresses & ABIs to `nextjs` packages
      */
-    function run() external ScaffoldEthDeployerRunner {
+    function run() external DeployerRunner {
         // Deploy each facet individually
         deployFacets();
         
