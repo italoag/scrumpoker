@@ -1,21 +1,54 @@
-# 🏗 Scaffold-ETH 2
+# 🏗 Scrum Poker
 
 <h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
+  <a href="#overview">Overview</a> |
+  <a href="#key-features">Key Features</a> |
+  <a href="#technical-architecture">Architecture</a> |
+  <a href="#getting-started">Getting Started</a>
 </h4>
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
+🧪 A decentralized application built on Ethereum that revolutionizes the way development teams conduct sprint planning sessions. This Web3 application implements the popular Scrum Poker (or Planning Poker) estimation technique on the blockchain, providing transparency, immutability, and incentivization for accurate estimations.
 
-⚙️ Built using NextJS, RainbowKit, Foundry, Wagmi, Viem, and Typescript.
+⚙️ Built using NextJS, RainbowKit, Foundry, Wagmi, Viem, and Typescript with Diamond Protocol (EIP-2535) smart contracts.
 
-- ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
-- 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
-- 🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
-- 🔥 **Burner Wallet & Local Faucet**: Quickly test your application with a burner wallet and local faucet.
-- 🔐 **Integration with Wallet Providers**: Connect to different wallet providers and interact with the Ethereum network.
+- ✅ **Decentralized Ceremonies**: Create and manage sprint planning sessions on-chain with unique access codes
+- 🪝 **NFT-Based Badge System**: Earn NFT badges based on estimation accuracy and participation
+- 🧱 **Role-Based Access Control**: Dedicated roles for Scrum Masters, Product Owners, and Developers
+- 🔥 **Feature Voting**: Vote on user stories and functionality with immutable results
+- 🔐 **Tokenized Incentives**: Economic incentives for active and accurate participation
+- 🤖 **Modular Smart Contract Architecture**: Leverages the Diamond Protocol for upgradability and modularity
 
-![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
+## Overview
+
+Scrum Poker is a decentralized application that brings the popular Scrum Poker planning technique to the blockchain. It enables development teams to conduct transparent, immutable sprint planning sessions with incentives for accurate estimations.
+
+## Key Features
+
+- **Decentralized Planning Sessions**: Conduct sprint planning on-chain
+- **NFT Badges for Participation**: Earn rewards based on estimation accuracy
+- **Blockchain Transparency**: All votes and outcomes are stored on-chain
+- **Role-Based Governance**: Special roles for Scrum Masters and team members
+
+## Technical Architecture
+
+### Smart Contract Implementation
+
+The Scrum Poker is implemented using the Diamond Protocol (EIP-2535) with the Solarity 3.1 library, making the contract modular, upgradeable, and efficient.
+
+#### Core Contracts
+
+- **ScrumPokerDiamond**: Main contract implementing the Diamond pattern
+- **ScrumPokerStorage**: Shared storage for all facets
+- **DiamondInit**: Initialization contract for setting up all facets
+
+#### Specialized Facets
+
+The system is divided into specialized facets:
+
+1. **AdminFacet**: Manages administrative settings and access control
+2. **NFTFacet**: Implements NFT badge functionality
+3. **CeremonyFacet**: Handles ceremonies (sprints) and participant management
+4. **VotingFacet**: Manages various voting processes
 
 ## Requirements
 
@@ -25,85 +58,213 @@ Before you begin, you need to install the following tools:
 - Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
 - [Git](https://git-scm.com/downloads)
 
-## Quickstart
+## Getting Started
 
-To get started with Scaffold-ETH 2, follow the steps below:
+To get started with Scrum Poker, follow these steps:
 
-1. Install dependencies if it was skipped in CLI:
+1. Install dependencies:
 
-```
-cd my-dapp-example
+```bash
+cd scrumpoker
 yarn install
 ```
 
 2. Run a local network in the first terminal:
 
-```
+```bash
 yarn chain
 ```
 
-This command starts a local Ethereum network using Foundry. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `packages/foundry/foundry.toml`.
+This command starts a local Ethereum network using Foundry for testing and development.
 
-3. On a second terminal, deploy the test contract:
+3. Deploy the Scrum Poker contracts:
 
-```
+```bash
 yarn deploy
 ```
 
-This command deploys a test smart contract to the local network. The contract is located in `packages/foundry/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/foundry/script` to deploy the contract to the network. You can also customize the deploy script.
+This deploys the Diamond Protocol contracts that make up the Scrum Poker dApp.
 
-4. On a third terminal, start your NextJS app:
+4. Start your NextJS app:
 
-```
+```bash
 yarn start
 ```
 
-Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
+Visit your app on: `http://localhost:3000`. You can interact with the Scrum Poker dApp to create ceremonies, join planning sessions, vote on user stories, and earn NFT badges.
 
-Run smart contract test with `yarn foundry:test`
+### Development
 
-- Edit your smart contracts in `packages/foundry/contracts`
-- Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
-- Edit your deployment scripts in `packages/foundry/script`
+- Run smart contract tests with `yarn foundry:test`
+- Edit smart contracts in `packages/foundry/contracts` - key files include the Diamond facets
+- Edit the frontend at `packages/nextjs/app/`
+- Modify deployment scripts in `packages/foundry/script`
 
-## 🚀 Setup Ponder Extension
+## Using the Scrum Poker dApp
 
-This extension allows to use Ponder (https://ponder.sh/) for event indexing on an SE-2 dapp.
+The Scrum Poker dApp provides multiple functionalities for different user roles:
 
-Ponder is an open-source framework for blockchain application backends. With Ponder, you can rapidly build & deploy an API that serves custom data from smart contracts on any EVM blockchain.
+### For Administrators
 
-### Config
+```javascript
+// Update exchange rate
+adminFacet.updateExchangeRate(newRate);
 
-Ponder config (```packages/ponder/ponder.config.ts```) is set automatically from the deployed contracts and using the first blockchain network setup at ```packages/nextjs/scaffold.config.ts```.
+// Pause/unpause the contract
+adminFacet.pause();
+adminFacet.unpause();
 
-### Design your schema
+// Grant roles to users
+adminFacet.grantRole(SCRUM_MASTER_ROLE, address);
+```
 
-You can define your Ponder data schema on the file at ```packages/ponder/ponder.schema.ts``` following the Ponder documentation (https://ponder.sh/docs/schema).
+### For NFT Badge Management
 
-### Indexing data
+```javascript
+// Purchase NFT badges
+nftFacet.purchaseNFT({ value: exchangeRate }, "Developer Badge", "ipfs://badge-uri");
 
-You can index events by adding files to ```packages/ponder/src/``` (https://ponder.sh/docs/indexing/write-to-the-database)
+// View badge data
+const badgeData = await nftFacet.getBadgeData(tokenId);
+```
 
-### Start the development server
+### For Ceremonies (Sprints)
 
-Run ```yarn ponder:dev``` to start the Ponder development server, for indexing and serving the GraphQL API endpoint at http://localhost:42069
+```javascript
+// Start a new ceremony (sprint)
+const code = await ceremonyFacet.startCeremony(sprintNumber);
 
-### Query the GraphQL API
+// Request to join a ceremony
+await ceremonyFacet.requestCeremonyEntry(code);
 
-With the dev server running, open http://localhost:42069 in your browser to use the GraphiQL interface. GraphiQL is a useful tool for exploring your schema and testing queries during development. (https://ponder.sh/docs/query/graphql)
+// Approve participant entry (Scrum Master only)
+await ceremonyFacet.approveEntry(code, participantAddress);
 
-You can query data on a page using ```@tanstack/react-query```. Check the code at ```packages/nextjs/app/greetings/page.ts``` to get the greetings updates data and show it.
+// Conclude a ceremony
+await ceremonyFacet.concludeCeremony(code);
+```
 
-### Deploy
+### For Voting
 
-To deploy the Ponder indexer please refer to the Ponder Deploy documentation https://ponder.sh/docs/production/deploy
+```javascript
+// Vote in a ceremony
+await votingFacet.vote(code, voteValue);
 
-At **Settings** -> **Deploy** -> you must set **Custom Start Command** to ```yarn ponder:start```.
+// Open voting for a specific functionality
+await votingFacet.openFunctionalityVote(code, functionalityCode);
 
-For faster indexing, you can add the ***startBlock*** to each deployed contract on the file ```packages/nextjs/contracts/deployedContracts.ts```.
+// Vote on functionality
+await votingFacet.voteFunctionality(code, sessionIndex, voteValue);
 
-And then you have to set up the ```NEXT_PUBLIC_PONDER_URL``` env variable on your SE-2 dapp to use the deployed ponder indexer.
+// Update badges with voting results
+await votingFacet.updateBadges(code);
+```
 
+## Event Indexing with Ponder
+
+The Scrum Poker dApp uses Ponder for event indexing to track important events like ceremony creation, voting results, and badge awards.
+
+### Setup
+
+Ponder configuration is in `packages/ponder/ponder.config.ts`, automatically using deployed contracts from the blockchain network configured in `packages/nextjs/scaffold.config.ts`.
+
+### Schema
+
+The Scrum Poker schema in `packages/ponder/ponder.schema.ts` models entities like:
+- Ceremonies
+- Participants
+- Votes
+- NFT Badges
+- Rewards
+
+### Development Server
+
+Start the Ponder server to index events and provide the GraphQL API:
+
+```bash
+yarn ponder:dev
+```
+
+Access the GraphQL interface at http://localhost:42069
+
+### Querying Data
+
+In your frontend, you can query ceremony and voting data using React Query:
+
+```typescript
+// Example query for a ceremony's voting results
+const { data: ceremonyResults } = useQuery({
+  queryKey: ["ceremonyResults", ceremonyCode],
+  queryFn: async () => {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_PONDER_URL}/graphql`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: `
+            query GetCeremonyResults($code: String!) {
+              ceremony(code: $code) {
+                code
+                sprintNumber
+                votes {
+                  voter
+                  value
+                  timestamp
+                }
+                concluded
+              }
+            }
+          `,
+          variables: { code: ceremonyCode }
+        })
+      }
+    );
+    const json = await response.json();
+    return json.data.ceremony;
+  }
+});
+```
+
+## Security Features
+
+The Scrum Poker implements multiple security measures at the smart contract level:
+
+- **Reentrancy Protection**: Guards against reentrancy attacks in all fund-related functions
+- **Withdrawal Pattern**: Secure fund transfers using the withdrawal pattern
+- **Role-Based Access Control**: Granular permissions for different user types
+- **Emergency Pause**: Ability to pause contract operations in case of emergencies
+- **State Verification**: Thorough validation checks for all operations
+
+## Contract Upgradeability
+
+One of the key advantages of using the Diamond Protocol (EIP-2535) is the ability to upgrade contracts without losing state:
+
+1. Deploy new facet implementations
+2. Update the Diamond contract to point to the new facets
+3. Remove or replace obsolete facets
+
+This can be done using the `diamondCut` method of the Diamond contract.
+
+## Contributing
+
+We welcome contributions to improve the Scrum Poker dApp! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Acknowledgments
+
+- Built with [Scaffold-ETH 2](https://github.com/scaffold-eth/scaffold-eth-2)
+- Diamond Protocol implementation based on [EIP-2535](https://eips.ethereum.org/EIPS/eip-2535)
+- [Solarity](https://github.com/solarity) for Diamond Protocol helpers
 
 ## Documentation
 
@@ -111,8 +272,8 @@ Visit our [docs](https://docs.scaffoldeth.io) to learn how to start building wit
 
 To know more about its features, check out our [website](https://scaffoldeth.io).
 
-## Contributing to Scaffold-ETH 2
+## Contributing
 
-We welcome contributions to Scaffold-ETH 2!
+We welcome contributions to Scrum Poker!
 
-Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.
+Please see [CONTRIBUTING.MD](https://github.com/italoag/scrumpoker/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scrum Poker.
