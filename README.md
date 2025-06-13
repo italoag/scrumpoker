@@ -1,4 +1,4 @@
-# 🏗 Scrum Poker
+# 🎲 Scrum Poker
 
 <h4 align="center">
   <a href="#overview">Overview</a> |
