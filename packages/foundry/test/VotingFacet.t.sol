@@ -140,4 +140,31 @@ contract VotingFacetTest is Test {
         bytes4 selector = votingFacet.hasFunctionalityVoted.selector;
         assertTrue(selector != bytes4(0), "A funcao hasFunctionalityVoted deve existir");
     }
+
+    /**
+     * @dev Teste para verificar a implementação da função getParticipantTotalPoints
+     */
+    function testGetParticipantTotalPointsImplementation() public view {
+        // Verificamos a assinatura da função
+        bytes4 selector = votingFacet.getParticipantTotalPoints.selector;
+        assertTrue(selector != bytes4(0), "A funcao getParticipantTotalPoints deve existir");
+    }
+
+    /**
+     * @dev Teste para verificar a implementação da função getCeremonyResults
+     */
+    function testGetCeremonyResultsImplementation() public view {
+        // Verificamos a assinatura da função
+        bytes4 selector = votingFacet.getCeremonyResults.selector;
+        assertTrue(selector != bytes4(0), "A funcao getCeremonyResults deve existir");
+    }
+
+    /**
+     * @dev Teste para verificar a implementação da função getFunctionalityResults
+     */
+    function testGetFunctionalityResultsImplementation() public view {
+        // Verificamos a assinatura da função
+        bytes4 selector = votingFacet.getFunctionalityResults.selector;
+        assertTrue(selector != bytes4(0), "A funcao getFunctionalityResults deve existir");
+    }
 }

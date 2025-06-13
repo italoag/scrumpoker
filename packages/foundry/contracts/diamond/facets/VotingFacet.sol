@@ -245,13 +245,87 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
     }
 
     function getFunctionalityVote(string memory _code, uint256 _sessionIdx, address _participant)
-        external
-        view
-        returns (uint256)
+         external
+         view
+         returns (uint256)
     {
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHashView(_code);
         if (_sessionIdx >= ScrumPokerStorage.diamondStorage().functionalityVoteSessions[codeHash].length) return 0;
         return ScrumPokerStorage.diamondStorage().functionalityVoteSessions[codeHash][_sessionIdx].votes[_participant];
+    }
+
+    /**
+     * @notice Retorna o total de pontos (voto da cerimônia + votos de funcionalidades) de um participante.
+     */
+    function getParticipantTotalPoints(string memory _code, address _participant) public view returns (uint256 total) {
+        bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHashView(_code);
+        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
+        total = ds.ceremonyVotes[codeHash][_participant];
+        uint256 sessionsLen = ds.functionalityVoteSessions[codeHash].length;
+        for (uint256 i; i < sessionsLen; i++) {
+            ScrumPokerStorage.FunctionalityVoteSession storage s = ds.functionalityVoteSessions[codeHash][i];
+            if (s.hasVoted[_participant]) {
+                total += s.votes[_participant];
+            }
+        }
+    }
+
+    /**
+     * @notice Obtém resultados consolidados da cerimônia (todos os participantes e seus totais de pontos).
+     * @return participants Lista de participantes.
+     * @return totals Pontuação total correspondente.
+     */
+    function getCeremonyResults(string memory _code)
+        external
+        view
+        returns (address[] memory participants, uint256[] memory totals)
+    {
+        ScrumPokerStorage.Ceremony storage ceremony = ScrumPokerStorage.getCeremony(_code);
+        uint256 len = ceremony.participants.length;
+        participants = new address[](len);
+        totals = new uint256[](len);
+        for (uint256 i; i < len; i++) {
+            address p = ceremony.participants[i];
+            participants[i] = p;
+            totals[i] = getParticipantTotalPoints(_code, p);
+        }
+    }
+
+    /**
+     * @notice Obtém o resultado consolidado de voto de funcionalidade.
+     * @dev Reverte se a sessão não existir.
+     * @return voters Lista de quem votou.
+     * @return votes_ Valor do voto para cada participante.
+     */
+    function getFunctionalityResults(string memory _code, uint256 _sessionIdx)
+        external
+        view
+        returns (address[] memory voters, uint256[] memory votes_)
+    {
+        bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHashView(_code);
+        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
+        if (_sessionIdx >= ds.functionalityVoteSessions[codeHash].length) revert SessionNotFound();
+        ScrumPokerStorage.FunctionalityVoteSession storage s = ds.functionalityVoteSessions[codeHash][_sessionIdx];
+
+        ScrumPokerStorage.Ceremony storage ceremony = ScrumPokerStorage.getCeremony(_code);
+        uint256 len = ceremony.participants.length;
+        uint256 count;
+        for (uint256 i; i < len; i++) {
+            if (s.hasVoted[ceremony.participants[i]]) {
+                count++;
+            }
+        }
+        voters = new address[](count);
+        votes_ = new uint256[](count);
+        uint256 idx;
+        for (uint256 i; i < len; i++) {
+            address p = ceremony.participants[i];
+            if (s.hasVoted[p]) {
+                voters[idx] = p;
+                votes_[idx] = s.votes[p];
+                idx++;
+            }
+        }
     }
 
     /*──────────────────────── Internal helpers ───────────────────*/
