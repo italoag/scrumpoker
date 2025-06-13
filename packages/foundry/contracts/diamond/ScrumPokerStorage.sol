@@ -27,7 +27,7 @@ library ScrumPokerStorage {
     
     // Versão atual do layout de armazenamento
     // Alterações no layout de storage devem ser acompanhadas de incremento na versão
-    uint256 constant CURRENT_STORAGE_VERSION = 1;
+    uint256 constant CURRENT_STORAGE_VERSION = 2;
 
     struct SprintResult {
         uint256 sprintNumber;         // Número do sprint
@@ -118,14 +118,6 @@ library ScrumPokerStorage {
         // Controle de Acesso
         mapping(bytes32 => mapping(address => bool)) roles; // Role => (endereço => tem papel)
         
-        // Mapeamentos legados (mantidos para retrocompatibilidade)
-        mapping(string => Ceremony) ceremonies;                         // LEGADO - Não usar em novas implementações
-        mapping(string => bool) _deprecatedCeremonyExists;             // LEGADO - Não usar em novas implementações
-        mapping(string => mapping(address => bool)) _deprecatedHasRequestedEntry;   // LEGADO
-        mapping(string => mapping(address => bool)) _deprecatedCeremonyApproved;    // LEGADO
-        mapping(string => mapping(address => bool)) _deprecatedCeremonyHasVoted;    // LEGADO
-        mapping(string => mapping(address => uint256)) _deprecatedCeremonyVotes;    // LEGADO
-        mapping(string => FunctionalityVoteSession[]) _deprecatedFunctionalitySessions; // LEGADO
     }
 
     // Constantes para controle de acesso baseado em papéis
@@ -268,16 +260,8 @@ library ScrumPokerStorage {
      * @return Verdadeiro se a cerimônia existe.
      */
     function ceremonyExists(string memory code) internal view returns (bool) {
-        DiamondStorage storage ds = diamondStorage();
         bytes32 codeHash = getCeremonyCodeHashView(code);
-        
-        // Verificar primeiro no novo formato
-        if (ceremoniesExistsByHash(codeHash)) {
-            return true;
-        }
-        
-        // Se não encontrado, verificar no formato legado
-        return ds.ceremonies[code].startTime > 0 || ds._deprecatedCeremonyExists[code];
+        return ceremoniesExistsByHash(codeHash);
     }
     
     /**
@@ -297,63 +281,9 @@ library ScrumPokerStorage {
      * @return Estrutura da cerimônia.
      */
     function getCeremony(string memory code) internal view returns (Ceremony storage) {
-        DiamondStorage storage ds = diamondStorage();
         bytes32 codeHash = getCeremonyCodeHashView(code);
-        
-        // Verificar primeiro no novo formato
-        if (ceremoniesExistsByHash(codeHash)) {
-            return getCeremonyByHash(codeHash);
-        }
-        
-        // Se não encontrado, tentar o formato legado
-        if (ds.ceremonies[code].startTime > 0) {
-            return ds.ceremonies[code];
-        }
-        
-        // Se não existir em nenhum formato, reverte
-        revert CeremonyNotFound(code);
+        return diamondStorage().ceremoniesByHash[codeHash];
     }
+
     
-    /**
-     * @dev Migra uma cerimônia do formato legado para o novo formato otimizado.
-     * @param code Código da cerimônia a ser migrada.
-     */
-    function migrateCeremony(string memory code) internal {
-        DiamondStorage storage ds = diamondStorage();
-        
-        // Verificar se existe no formato legado
-        if (ds.ceremonies[code].startTime == 0 && !ds._deprecatedCeremonyExists[code]) {
-            revert CeremonyNotFound(code);
-        }
-        
-        // Obter ou gerar o hash do código
-        bytes32 codeHash = getCeremonyCodeHash(code);
-        
-        // Verificar se já foi migrada
-        if (ceremoniesExistsByHash(codeHash)) {
-            return; // Já está migrada, não faça nada
-        }
-        
-        // Copiar a cerimônia para o novo formato
-        Ceremony storage legacyCeremony = ds.ceremonies[code];
-        Ceremony storage newCeremony = ds.ceremoniesByHash[codeHash];
-        
-        newCeremony.codeHash = codeHash;
-        newCeremony.code = code;
-        newCeremony.sprintNumber = legacyCeremony.sprintNumber;
-        newCeremony.startTime = legacyCeremony.startTime;
-        newCeremony.endTime = legacyCeremony.endTime;
-        newCeremony.scrumMaster = legacyCeremony.scrumMaster;
-        newCeremony.active = legacyCeremony.active;
-        
-        // Copiar a lista de participantes
-        // Armazenando o tamanho do array em uma variável local para economizar gas
-        uint256 participantsLength = legacyCeremony.participants.length;
-        for (uint256 i = 0; i < participantsLength; i++) {
-            newCeremony.participants.push(legacyCeremony.participants[i]);
-        }
-        
-        // Marcar como existente no novo formato
-        ds.ceremonyExists[codeHash] = true;
-    }
 }

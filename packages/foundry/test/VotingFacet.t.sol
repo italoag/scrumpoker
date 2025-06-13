@@ -119,7 +119,7 @@ contract VotingFacetTest is Test {
      */
     function testUpdateBadgesImplementation() public view {
         // Verificamos a assinatura da função
-        bytes4 selector = votingFacet.updateBadges.selector;
+        bytes4 selector = votingFacet.updateBadgesRange.selector;
         assertTrue(selector != bytes4(0), "A funcao updateBadges deve existir");
     }
 

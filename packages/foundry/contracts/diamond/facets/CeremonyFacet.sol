@@ -102,7 +102,7 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
         
         // Verificação de segurança - garante que o código não existe já
         // Verifica tanto no formato otimizado quanto no formato legado
-        if (ds.ceremonyExists[codeHash] || ds._deprecatedCeremonyExists[code]) {
+        if (ds.ceremonyExists[codeHash]) {
             revert ScrumPokerStorage.CeremonyAlreadyExists(code);
         }
         
@@ -121,7 +121,7 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
         ds.ceremonyExists[codeHash] = true;
         
         // Mantenha a compatibilidade com código existente (legado)
-        ds.ceremonies[code] = ceremony;
+
         ds.ceremonyCodeToHash[code] = codeHash;
         
         // Concede automaticamente o papel de Scrum Master ao criador da cerimônia
@@ -149,13 +149,13 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
         
         // Verifica se já solicitou entrada, verificando primeiro o formato otimizado
-        if (ds.hasRequestedEntry[codeHash][msg.sender] || ds._deprecatedHasRequestedEntry[_code][msg.sender]) revert EntryAlreadyRequested();
+        if (ds.hasRequestedEntry[codeHash][msg.sender]) revert EntryAlreadyRequested();
 
         // Armazena no novo formato otimizado
         ds.hasRequestedEntry[codeHash][msg.sender] = true;
         
         // Mantém retrocompatibilidade
-        ds._deprecatedHasRequestedEntry[_code][msg.sender] = true;
+
         
         emit CeremonyEntryRequested(_code, msg.sender);
     }
@@ -184,16 +184,16 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
         
         // Verifica se solicitou entrada
-        if (!ds.hasRequestedEntry[codeHash][_participant] && !ds._deprecatedHasRequestedEntry[_code][_participant]) revert EntryNotRequested();
+        if (!ds.hasRequestedEntry[codeHash][_participant]) revert EntryNotRequested();
         
         // Verifica se já está aprovado
-        if (ds.ceremonyApproved[codeHash][_participant] || ds._deprecatedCeremonyApproved[_code][_participant]) revert ParticipantAlreadyApproved();
+        if (ds.ceremonyApproved[codeHash][_participant]) revert ParticipantAlreadyApproved();
 
         // Aprova no formato otimizado
         ds.ceremonyApproved[codeHash][_participant] = true;
         
         // Mantém compatibilidade com o formato legado
-        ds._deprecatedCeremonyApproved[_code][_participant] = true;
+
         
         // Adiciona à lista de participantes e atualiza vesting
         ceremony.participants.push(_participant);
@@ -274,7 +274,7 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
         
         // Verifica em ambos os formatos (otimizado e legado)
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHashView(_code);
-        return ds.hasRequestedEntry[codeHash][_participant] || ds._deprecatedHasRequestedEntry[_code][_participant];
+        return ds.hasRequestedEntry[codeHash][_participant];
     }
 
     /**
@@ -288,7 +288,7 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
         
         // Verifica em ambos os formatos (otimizado e legado)
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHashView(_code);
-        return ds.ceremonyApproved[codeHash][_participant] || ds._deprecatedCeremonyApproved[_code][_participant];
+        return ds.ceremonyApproved[codeHash][_participant];
     }
 
     /**

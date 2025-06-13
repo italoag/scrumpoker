@@ -117,7 +117,7 @@ contract CeremonyFacetTest is Test {
         ds.vestingStart[user1] = 1;  // Timestamp muito antigo
         ds.vestingStart[user2] = 1;  // Timestamp muito antigo
         
-        // Inicializa a CeremonyFacet como owner com a role ADMIN
+        // Inicializa o storage através do Diamond
         CeremonyFacet(address(scrumPokerDiamond)).initializeCeremony();
         
         vm.stopPrank();

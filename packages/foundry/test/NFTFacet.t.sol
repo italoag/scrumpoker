@@ -40,7 +40,6 @@ contract NFTFacetTest is Test {
         ds.roles[adminRole][owner] = true;
         vm.stopPrank();
         
-        // Inicializa o contrato diretamente para o teste
         nftFacet.initializeNFT("ScrumPokerBadge", "SPB");
     }
 

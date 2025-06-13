@@ -19,7 +19,7 @@ library VotingFacetSelectors {
         selectors[2] = VotingFacet.openFunctionalityVote.selector;
         selectors[3] = VotingFacet.voteFunctionality.selector;
         selectors[4] = VotingFacet.closeFunctionalityVote.selector;
-        selectors[5] = VotingFacet.updateBadges.selector;
+        selectors[5] = VotingFacet.updateBadgesRange.selector;
         selectors[6] = VotingFacet.hasVoted.selector;
         selectors[7] = VotingFacet.getVote.selector;
         selectors[8] = VotingFacet.hasFunctionalityVoted.selector;

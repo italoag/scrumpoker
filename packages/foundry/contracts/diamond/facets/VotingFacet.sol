@@ -3,31 +3,30 @@ pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
 import "../ScrumPokerStorage.sol";
 import "../library/StringUtils.sol";
 import "../library/ValidationUtils.sol";
 
-/**
- * @title VotingFacet
- * @dev Faceta para gerenciar as votações e resultados das cerimônias do ScrumPoker.
- * Implementa a votação geral, votação de funcionalidades e atualização dos badges NFT.
- */
+/// @title VotingFacet – optimized voting logic with no legacy storage
+/// @notice Handles general votes, functionality vote sessions and NFT badge updates using only the
+///         optimized storage layout (codeHash-based mappings) defined in `ScrumPokerStorage`.
+/// @dev This file entirely replaces the previous `VotingFacetLegacy.sol`, which mixed legacy + optimized
+///      storage. All `_deprecated*` references were removed.
 contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
     using StringUtils for string;
     using ValidationUtils for address;
     using ValidationUtils for uint256;
-    // Eventos
+
+    /*─────────────────────────── Events ───────────────────────────*/
     event VoteCast(string ceremonyCode, address indexed participant, uint256 voteValue);
     event FunctionalityVoteOpened(string ceremonyCode, string functionalityCode, uint256 sessionIndex);
     event FunctionalityVoteCast(string ceremonyCode, uint256 sessionIndex, address indexed participant, uint256 voteValue);
     event FunctionalityVoteClosed(string ceremonyCode, uint256 sessionIndex, address indexed closer);
     event NFTBadgeUpdated(address indexed participant, uint256 tokenId, uint256 sprintNumber);
-    // Novo evento para indicar conclusão parcial de atualização dos badges
     event BadgeBatchProcessed(string ceremonyCode, uint256 startIndex, uint256 endIndex);
-    // Evento para indicar tentativa de voto inválido
-    event VoteRejected(string ceremonyCode, address indexed participant, uint256 invalidValue);
 
-    // Erros
+    /*─────────────────────────── Errors ───────────────────────────*/
     error CeremonyNotFound();
     error CeremonyNotActive();
     error NotAuthorized();
@@ -36,524 +35,226 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
     error NFTNotVested();
     error SessionNotFound();
     error SessionNotActive();
-    error InvalidRange();
     error DuplicateFunctionalitySession();
+    error InvalidRange();
     error InvalidVoteValue();
 
-    // Limites de voto (0 ≤ valor ≤ MAX_VOTE_VALUE)
+    /*─────────────────────────── Constants ────────────────────────*/
     uint256 public constant MAX_VOTE_VALUE = 100;
 
-    /**
-     * @dev Modificador que verifica se o contrato não está pausado.
-     */
+    /*─────────────────────────── Modifiers ────────────────────────*/
     modifier whenNotPaused() {
-        require(!ScrumPokerStorage.diamondStorage().paused, "VotingFacet: pausado");
+        require(!ScrumPokerStorage.diamondStorage().paused, "VotingFacet: paused");
         _;
     }
 
-    /**
-     * @dev Inicializa o contrato VotingFacet e verifica/inicializa o versionamento do storage.
-     */
+    /*──────────────────────── Initializer ────────────────────────*/
     function initializeVoting() external initializer {
         __ReentrancyGuard_init();
-        
-        // Inicializa ou verifica o storage versionado
         ScrumPokerStorage.initializeStorage();
     }
 
-    /**
-     * @notice Permite que um participante emita seu voto geral na cerimônia.
-     * @param _code Código único da cerimônia.
-     * @param _voteValue Valor do voto (pontos).
-     * Requisitos:
-     * - A cerimônia deve estar ativa.
-     * - O participante deve estar aprovado.
-     * - Não pode ter votado anteriormente.
-     * - O NFT deve estar "vested" (após o período de vesting).
-     */
+    /*────────────────────────── General Vote ─────────────────────*/
     function vote(string memory _code, uint256 _voteValue) external whenNotPaused {
-        // Verifica se o storage está inicializado e na versão correta
         ScrumPokerStorage.requireCorrectStorageVersion();
-        
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
-        
-        // Verifica se a cerimônia existe usando o helper
+
         if (!ScrumPokerStorage.ceremonyExists(_code)) revert CeremonyNotFound();
-        
-        // Obtem a cerimônia usando o helper
         ScrumPokerStorage.Ceremony storage ceremony = ScrumPokerStorage.getCeremony(_code);
         if (!ceremony.active) revert CeremonyNotActive();
-        
-        // Obtem o hash otimizado para usar nas verificações
-        bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
-        
-        // Verifica se o participante está aprovado (em ambos os formatos)
-        if (!ds.ceremonyApproved[codeHash][msg.sender] && !ds._deprecatedCeremonyApproved[_code][msg.sender]) revert ParticipantNotApproved();
-        
-        // Verifica se já votou (em ambos os formatos)
-        if (ds.ceremonyHasVoted[codeHash][msg.sender] || ds._deprecatedCeremonyHasVoted[_code][msg.sender]) revert AlreadyVoted();
-        
-        // Verifica o período de vesting
-        if (block.timestamp < ds.vestingStart[msg.sender] + ds.vestingPeriod) revert NFTNotVested();
-        // Limita o valor do voto
-        if (_voteValue > MAX_VOTE_VALUE) revert InvalidVoteValue();
 
-        // Registra o voto no formato otimizado
+        bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
+        if (!ds.ceremonyApproved[codeHash][msg.sender]) revert ParticipantNotApproved();
+        if (ds.ceremonyHasVoted[codeHash][msg.sender]) revert AlreadyVoted();
+        if (_voteValue > MAX_VOTE_VALUE) revert InvalidVoteValue();
+        if (block.timestamp < ds.vestingStart[msg.sender] + ds.vestingPeriod) revert NFTNotVested();
+
         ds.ceremonyVotes[codeHash][msg.sender] = _voteValue;
         ds.ceremonyHasVoted[codeHash][msg.sender] = true;
-        
-        // Mantém compatibilidade com o formato legado
-        ds._deprecatedCeremonyVotes[_code][msg.sender] = _voteValue;
-        ds._deprecatedCeremonyHasVoted[_code][msg.sender] = true;
-        
-        // Atualiza o contador de votos no badge do usuário
+
         uint256 tokenId = ds.userToken[msg.sender];
-        if (tokenId != 0) {
-            ds.badgeData[tokenId].votesCast++;
-        }
-        
+        if (tokenId != 0) ds.badgeData[tokenId].votesCast++;
+
         emit VoteCast(_code, msg.sender, _voteValue);
     }
 
-    /**
-     * @notice Abre uma nova sessão de votação para uma funcionalidade específica.
-     * @param _code Código único da cerimônia.
-     * @param _functionalityCode Código da funcionalidade a ser votada.
-     * Requisito: Apenas o Scrum Master pode abrir sessões.
-     */
-    function openFunctionalityVote(string memory _code, string memory _functionalityCode) 
-        external 
-        whenNotPaused 
+    /*────────────────── Functionality Vote Sessions ──────────────*/
+    function openFunctionalityVote(string memory _code, string memory _functionality)
+        external
+        whenNotPaused
     {
-        // Verifica se o storage está na versão correta
         ScrumPokerStorage.requireCorrectStorageVersion();
-        
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
-        
-        // Verifica se a cerimônia existe usando o helper
+
         if (!ScrumPokerStorage.ceremonyExists(_code)) revert CeremonyNotFound();
-        
-        // Obtém a cerimônia usando o helper
         ScrumPokerStorage.Ceremony storage ceremony = ScrumPokerStorage.getCeremony(_code);
-        
-        // Verifica autorização
         if (msg.sender != ceremony.scrumMaster && !_hasRole(ScrumPokerStorage.ADMIN_ROLE, msg.sender)) {
             revert NotAuthorized();
         }
-        
-        // Verifica se está ativa
         if (!ceremony.active) revert CeremonyNotActive();
 
-        // Obtém o hash do código para armazenamento otimizado
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
-        
-        // Hash do código da funcionalidade para comparação
-        bytes32 functionalityHash = _functionalityCode.stringToBytes32();
+        bytes32 funcHash = _functionality.stringToBytes32();
 
-        // Verifica duplicidade no formato otimizado
-        for (uint256 i = 0; i < ds.functionalityVoteSessions[codeHash].length; i++) {
-            if (ds.functionalityVoteSessions[codeHash][i].functionalityCodeHash == functionalityHash) {
-                revert DuplicateFunctionalitySession();
-            }
-        }
-        // Verifica duplicidade no formato legado
-        for (uint256 i = 0; i < ds._deprecatedFunctionalitySessions[_code].length; i++) {
-            if (ds._deprecatedFunctionalitySessions[_code][i].functionalityCodeHash == functionalityHash) {
+        // duplicate check
+        uint256 sessionsLen = ds.functionalityVoteSessions[codeHash].length;
+        for (uint256 i; i < sessionsLen; i++) {
+            if (ds.functionalityVoteSessions[codeHash][i].functionalityCodeHash == funcHash) {
                 revert DuplicateFunctionalitySession();
             }
         }
 
-        // Cria uma nova sessão no formato otimizado
-        uint256 sessionIndex = ds.functionalityVoteSessions[codeHash].length;
+        uint256 newIdx = sessionsLen;
         ds.functionalityVoteSessions[codeHash].push();
-        ScrumPokerStorage.FunctionalityVoteSession storage session = ds.functionalityVoteSessions[codeHash][sessionIndex];
+        ScrumPokerStorage.FunctionalityVoteSession storage s = ds.functionalityVoteSessions[codeHash][newIdx];
+        s.functionalityCodeHash = funcHash;
+        s.functionalityCode = _functionality;
+        s.active = true;
 
-        // Configura os campos da sessão
-        session.functionalityCodeHash = functionalityHash;
-        session.functionalityCode = _functionalityCode;
-        session.active = true;
-
-        // Mantém compatibilidade com o formato legado
-        ds._deprecatedFunctionalitySessions[_code].push();
-        ScrumPokerStorage.FunctionalityVoteSession storage legacySession = ds._deprecatedFunctionalitySessions[_code][sessionIndex];
-        legacySession.functionalityCode = _functionalityCode;
-        legacySession.active = true;
-
-        emit FunctionalityVoteOpened(_code, _functionalityCode, sessionIndex);
+        emit FunctionalityVoteOpened(_code, _functionality, newIdx);
     }
 
-    /**
-     * @notice Permite que um participante vote em uma sessão de votação de funcionalidade.
-     * @param _code Código único da cerimônia.
-     * @param _sessionIndex Índice da sessão.
-     * @param _voteValue Valor do voto para a funcionalidade.
-     * Requisitos:
-     * - A cerimônia deve estar ativa.
-     * - O participante deve estar aprovado.
-     * - Não pode ter votado nesta sessão.
-     * - O NFT deve estar "vested".
-     */
-    function voteFunctionality(string memory _code, uint256 _sessionIndex, uint256 _voteValue) 
-        external 
-        whenNotPaused 
+    function voteFunctionality(string memory _code, uint256 _sessionIdx, uint256 _voteValue)
+        external
+        whenNotPaused
     {
-        // Verifica se o storage está na versão correta
         ScrumPokerStorage.requireCorrectStorageVersion();
-        
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
-        
-        // Verifica se a cerimônia existe usando o helper
+
         if (!ScrumPokerStorage.ceremonyExists(_code)) revert CeremonyNotFound();
-        
-        // Obtém a cerimônia usando o helper
         ScrumPokerStorage.Ceremony storage ceremony = ScrumPokerStorage.getCeremony(_code);
         if (!ceremony.active) revert CeremonyNotActive();
-        
-        // Obtém o hash do código para uso no formato otimizado
-        bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
-        
-        // Verifica se o participante está aprovado (em ambos os formatos)
-        if (!ds.ceremonyApproved[codeHash][msg.sender] && !ds._deprecatedCeremonyApproved[_code][msg.sender]) 
-            revert ParticipantNotApproved();
-        
-        // Verifica se a sessão existe no formato otimizado
-        if (_sessionIndex >= ds.functionalityVoteSessions[codeHash].length) {
-            // Tenta verificar no formato legado se não encontrar no otimizado
-            if (_sessionIndex >= ds._deprecatedFunctionalitySessions[_code].length) 
-                revert SessionNotFound();
-            
-            // Se encontrado no formato legado, migra para o otimizado
-            if (ds.functionalityVoteSessions[codeHash].length == 0) {
-                // Nota: Manter o acesso direto ao length para evitar Stack too deep
-                for (uint256 i = 0; i < ds._deprecatedFunctionalitySessions[_code].length; i++) {
-                    ScrumPokerStorage.FunctionalityVoteSession storage legacySession = ds._deprecatedFunctionalitySessions[_code][i];
-                    
-                    // Usar .push() sem argumentos e depois definir valores para evitar problemas com mappings aninhados
-                    ds.functionalityVoteSessions[codeHash].push();
-                    ScrumPokerStorage.FunctionalityVoteSession storage newSession = ds.functionalityVoteSessions[codeHash][i];
-                    
-                    bytes32 functionalityHash = legacySession.functionalityCode.stringToBytes32();
-                    newSession.functionalityCodeHash = functionalityHash;
-                    newSession.functionalityCode = legacySession.functionalityCode;
-                    newSession.active = legacySession.active;
-                }
-            }
-        }
 
-        // Agora que garantimos que a sessão existe no formato otimizado, obtemos ela
-        ScrumPokerStorage.FunctionalityVoteSession storage session = ds.functionalityVoteSessions[codeHash][_sessionIndex];
-        
-        // Verifica se a sessão está ativa
-        if (!session.active) revert SessionNotActive();
-        if (session.hasVoted[msg.sender]) revert AlreadyVoted();
-        // Limita o valor do voto
+        bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
+        if (!ds.ceremonyApproved[codeHash][msg.sender]) revert ParticipantNotApproved();
+        if (_sessionIdx >= ds.functionalityVoteSessions[codeHash].length) revert SessionNotFound();
+
+        ScrumPokerStorage.FunctionalityVoteSession storage s = ds.functionalityVoteSessions[codeHash][_sessionIdx];
+        if (!s.active) revert SessionNotActive();
+        if (s.hasVoted[msg.sender]) revert AlreadyVoted();
         if (_voteValue > MAX_VOTE_VALUE) revert InvalidVoteValue();
         if (block.timestamp < ds.vestingStart[msg.sender] + ds.vestingPeriod) revert NFTNotVested();
 
-        // Registra o voto no formato otimizado
-        session.votes[msg.sender] = _voteValue;
-        session.hasVoted[msg.sender] = true;
-        
-        // Mantém compatibilidade com o formato legado
-        if (_sessionIndex < ds._deprecatedFunctionalitySessions[_code].length) {
-            ds._deprecatedFunctionalitySessions[_code][_sessionIndex].votes[msg.sender] = _voteValue;
-            ds._deprecatedFunctionalitySessions[_code][_sessionIndex].hasVoted[msg.sender] = true;
-        }
-        
-        emit FunctionalityVoteCast(_code, _sessionIndex, msg.sender, _voteValue);
+        s.votes[msg.sender] = _voteValue;
+        s.hasVoted[msg.sender] = true;
+
+        emit FunctionalityVoteCast(_code, _sessionIdx, msg.sender, _voteValue);
     }
 
-    /**
-     * @notice Encerra uma sessão de votação de funcionalidade.
-     * @param _code Código único da cerimônia.
-     * @param _sessionIndex Índice da sessão.
-     * Requisito: Apenas o Scrum Master pode encerrar a sessão.
-     */
-    function closeFunctionalityVote(string memory _code, uint256 _sessionIndex) 
-        external 
-        whenNotPaused 
+    function closeFunctionalityVote(string memory _code, uint256 _sessionIdx)
+        external
+        whenNotPaused
     {
-        // Verifica se o storage está na versão correta
         ScrumPokerStorage.requireCorrectStorageVersion();
-        
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
-        
-        // Verifica se a cerimônia existe usando o helper
+
         if (!ScrumPokerStorage.ceremonyExists(_code)) revert CeremonyNotFound();
-        
-        // Obtém a cerimônia usando o helper
         ScrumPokerStorage.Ceremony storage ceremony = ScrumPokerStorage.getCeremony(_code);
-        
-        // Verifica autorização
-        if (msg.sender != ceremony.scrumMaster && !_hasRole(ScrumPokerStorage.ADMIN_ROLE, msg.sender)) {
-            revert NotAuthorized();
-        }
-        
-        // Obtém o hash do código para uso no formato otimizado
+        if (msg.sender != ceremony.scrumMaster && !_hasRole(ScrumPokerStorage.ADMIN_ROLE, msg.sender)) revert NotAuthorized();
+
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
-        
-        // Verificar em ambos os formatos se a sessão existe
-        bool sessionExists = false;
-        
-        // Verifica no formato otimizado
-        if (_sessionIndex < ds.functionalityVoteSessions[codeHash].length) {
-            ScrumPokerStorage.FunctionalityVoteSession storage session = ds.functionalityVoteSessions[codeHash][_sessionIndex];
-            if (!session.active) revert SessionNotActive();
-            
-            // Desativa no formato otimizado
-            session.active = false;
-            sessionExists = true;
-        }
-        
-        // Verifica também no formato legado
-        if (_sessionIndex < ds._deprecatedFunctionalitySessions[_code].length) {
-            ScrumPokerStorage.FunctionalityVoteSession storage legacySession = ds._deprecatedFunctionalitySessions[_code][_sessionIndex];
-            
-            // Desativa no formato legado
-            legacySession.active = false;
-            sessionExists = true;
-        }
-        
-        // Se não encontrou a sessão em nenhum formato, reverte
-        if (!sessionExists) revert SessionNotFound();
-        
-        // Emite evento de encerramento da votação
-        emit FunctionalityVoteClosed(_code, _sessionIndex, msg.sender);
+        if (_sessionIdx >= ds.functionalityVoteSessions[codeHash].length) revert SessionNotFound();
+
+        ScrumPokerStorage.FunctionalityVoteSession storage s = ds.functionalityVoteSessions[codeHash][_sessionIdx];
+        if (!s.active) revert SessionNotActive();
+
+        s.active = false;
+        emit FunctionalityVoteClosed(_code, _sessionIdx, msg.sender);
     }
 
-    /**
-     * @notice Atualiza os badges NFT dos participantes com os resultados da cerimônia.
-     * @param _code Código único da cerimônia.
-     * Requisito: A cerimônia deve estar concluída.
-     */
-    /**
-     * @notice (DEPRECATED) Use updateBadgesRange para processar em lotes e evitar estouro de gas.
-     */
-    function updateBadges(string memory /*_code*/) external pure {
-        revert("VotingFacet: use updateBadgesRange");
-    }
-
-    /**
-     * @notice Atualiza os badges em lotes, processando participantes entre índices [start, end).
-     * Reverte se o intervalo for inválido ou exceder o tamanho do array.
-     * @param _code Código único da cerimônia.
-     * @param start Índice inicial (inclusivo).
-     * @param end Índice final (exclusivo).
-     */
+    /*──────────────────── Badge Update (batched) ─────────────────*/
     function updateBadgesRange(string memory _code, uint256 start, uint256 end)
         external
         nonReentrant
         whenNotPaused
     {
         if (end <= start) revert InvalidRange();
-        // Verifica se o storage está na versão correta
         ScrumPokerStorage.requireCorrectStorageVersion();
-        
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
-        
-        // Verifica se a cerimônia existe usando o helper
+
         if (!ScrumPokerStorage.ceremonyExists(_code)) revert CeremonyNotFound();
-        
-        // Obtém a cerimônia usando o helper
         ScrumPokerStorage.Ceremony storage ceremony = ScrumPokerStorage.getCeremony(_code);
-        if (ceremony.active) revert CeremonyNotActive();
-        if (msg.sender != ceremony.scrumMaster && !_hasRole(ScrumPokerStorage.ADMIN_ROLE, msg.sender)) {
-            revert NotAuthorized();
-        }
-        
-        // Obtém o hash do código para uso no formato otimizado
+        if (ceremony.active) revert CeremonyNotActive(); // must be finished
+        if (msg.sender != ceremony.scrumMaster && !_hasRole(ScrumPokerStorage.ADMIN_ROLE, msg.sender)) revert NotAuthorized();
+
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
 
-        // Nota: Manter o acesso direto ao length para evitar Stack too deep
-        for (uint256 i = start; i < end; i++) {
+        for (uint256 i = start; i < end && i < ceremony.participants.length; i++) {
             address participant = ceremony.participants[i];
             uint256 tokenId = ds.userToken[participant];
             if (tokenId == 0) continue;
 
-            uint256 totalPoints = 0;
-            
-            // Verifica votos em ambos os formatos (otimizado e legado)
-            if (ds.ceremonyHasVoted[codeHash][participant] || ds._deprecatedCeremonyHasVoted[_code][participant]) {
-                // Preferir o formato otimizado se disponível
-                if (ds.ceremonyHasVoted[codeHash][participant]) {
-                    totalPoints += ds.ceremonyVotes[codeHash][participant];
-                } else {
-                    totalPoints += ds._deprecatedCeremonyVotes[_code][participant];
+            uint256 totalPoints = ds.ceremonyVotes[codeHash][participant];
+
+            uint256 sessionsLen = ds.functionalityVoteSessions[codeHash].length;
+            string[] memory codes = new string[](sessionsLen);
+            uint256[] memory votes = new uint256[](sessionsLen);
+            uint256 validCount;
+            for (uint256 j; j < sessionsLen; j++) {
+                ScrumPokerStorage.FunctionalityVoteSession storage s = ds.functionalityVoteSessions[codeHash][j];
+                if (s.hasVoted[participant]) {
+                    codes[validCount] = s.functionalityCode;
+                    votes[validCount] = s.votes[participant];
+                    totalPoints += s.votes[participant];
+                    validCount++;
                 }
             }
-
-            // Determina o número de sessões no formato otimizado e legado
-            uint256 sessionCount = ds.functionalityVoteSessions[codeHash].length;
-            if (ds._deprecatedFunctionalitySessions[_code].length > sessionCount) {
-                sessionCount = ds._deprecatedFunctionalitySessions[_code].length;
-            }
-            
-            // Arrays temporários para votos de funcionalidades
-            string[] memory funcCodesTemp = new string[](sessionCount);
-            uint256[] memory funcVotesTemp = new uint256[](sessionCount);
-            uint256 validSessionCount = 0;
-
-            // Coleta os votos de funcionalidades - primeiro no formato otimizado
-            for (uint256 j = 0; j < ds.functionalityVoteSessions[codeHash].length; j++) {
-                ScrumPokerStorage.FunctionalityVoteSession storage session = ds.functionalityVoteSessions[codeHash][j];
-                if (session.hasVoted[participant]) {
-                    funcCodesTemp[validSessionCount] = session.functionalityCode;
-                    funcVotesTemp[validSessionCount] = session.votes[participant];
-                    totalPoints += session.votes[participant];
-                    validSessionCount++;
-                }
-            }
-            
-            // Coleta qualquer voto adicional do formato legado que não foi migrado
-            for (uint256 j = 0; j < ds._deprecatedFunctionalitySessions[_code].length; j++) {
-                ScrumPokerStorage.FunctionalityVoteSession storage session = ds._deprecatedFunctionalitySessions[_code][j];
-                if (session.hasVoted[participant]) {
-                    // Verifica se este voto já foi contabilizado no formato otimizado
-                    bool alreadyCounted = false;
-                    for (uint256 k = 0; k < validSessionCount; k++) {
-                        if (keccak256(abi.encodePacked(funcCodesTemp[k])) == keccak256(abi.encodePacked(session.functionalityCode))) {
-                            alreadyCounted = true;
-                            break;
-                        }
-                    }
-                    
-                    // Se não foi contabilizado, adiciona aos resultados
-                    if (!alreadyCounted) {
-                        funcCodesTemp[validSessionCount] = session.functionalityCode;
-                        funcVotesTemp[validSessionCount] = session.votes[participant];
-                        totalPoints += session.votes[participant];
-                        validSessionCount++;
-                    }
-                }
+            // shrink arrays to validCount
+            string[] memory finalCodes = new string[](validCount);
+            uint256[] memory finalVotes = new uint256[](validCount);
+            for (uint256 k; k < validCount; k++) {
+                finalCodes[k] = codes[k];
+                finalVotes[k] = votes[k];
             }
 
-            // Cria arrays de tamanho correto com os dados válidos
-            string[] memory functionalityCodes = new string[](validSessionCount);
-            uint256[] memory functionalityVotes = new uint256[](validSessionCount);
-            for (uint256 j = 0; j < validSessionCount; j++) {
-                functionalityCodes[j] = funcCodesTemp[j];
-                functionalityVotes[j] = funcVotesTemp[j];
-            }
-
-            // Cria um novo SprintResult e adiciona ao histórico do badge
             ScrumPokerStorage.SprintResult memory result = ScrumPokerStorage.SprintResult({
                 sprintNumber: ceremony.sprintNumber,
                 startTime: ceremony.startTime,
                 endTime: ceremony.endTime,
                 totalPoints: totalPoints,
-                functionalityCodes: functionalityCodes,
-                functionalityVotes: functionalityVotes
+                functionalityCodes: finalCodes,
+                functionalityVotes: finalVotes
             });
-
             ds.badgeData[tokenId].sprintResults.push(result);
             ds.badgeData[tokenId].ceremoniesParticipated++;
-
             emit NFTBadgeUpdated(participant, tokenId, ceremony.sprintNumber);
         }
+
+        emit BadgeBatchProcessed(_code, start, end);
     }
 
-    /**
-     * @notice Verifica se um participante votou em uma cerimônia.
-     * @param _code Código da cerimônia.
-     * @param _participant Endereço do participante.
-     * @return bool Verdadeiro se o participante votou.
-     */
+    /*────────────────────── Getters (view) ───────────────────────*/
     function hasVoted(string memory _code, address _participant) external view returns (bool) {
-        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
-        
-        // Verifica em ambos os formatos (otimizado e legado)
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHashView(_code);
-        return ds.ceremonyHasVoted[codeHash][_participant] || ds._deprecatedCeremonyHasVoted[_code][_participant];
+        return ScrumPokerStorage.diamondStorage().ceremonyHasVoted[codeHash][_participant];
     }
 
-    /**
-     * @notice Obtém o voto de um participante em uma cerimônia.
-     * @param _code Código da cerimônia.
-     * @param _participant Endereço do participante.
-     * @return uint256 Valor do voto.
-     */
     function getVote(string memory _code, address _participant) external view returns (uint256) {
-        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
-        
-        // Verifica em ambos os formatos (otimizado e legado)
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHashView(_code);
-        
-        // Prioriza o formato otimizado se o voto estiver lá
-        if (ds.ceremonyHasVoted[codeHash][_participant]) {
-            return ds.ceremonyVotes[codeHash][_participant];
-        }
-        
-        // Caso contrário, retorna do formato legado
-        return ds._deprecatedCeremonyVotes[_code][_participant];
+        return ScrumPokerStorage.diamondStorage().ceremonyVotes[codeHash][_participant];
     }
 
-    /**
-     * @notice Verifica se um participante votou em uma sessão de funcionalidade.
-     * @param _code Código da cerimônia.
-     * @param _sessionIndex Índice da sessão.
-     * @param _participant Endereço do participante.
-     * @return bool Verdadeiro se o participante votou.
-     */
-    function hasFunctionalityVoted(string memory _code, uint256 _sessionIndex, address _participant) 
-        external 
-        view 
-        returns (bool) 
+    function hasFunctionalityVoted(string memory _code, uint256 _sessionIdx, address _participant)
+        external
+        view
+        returns (bool)
     {
-        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
-        
-        // Verifica em ambos os formatos (otimizado e legado)
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHashView(_code);
-        
-        // Verifica no formato otimizado
-        if (_sessionIndex < ds.functionalityVoteSessions[codeHash].length) {
-            if (ds.functionalityVoteSessions[codeHash][_sessionIndex].hasVoted[_participant]) {
-                return true;
-            }
-        }
-        
-        // Caso não esteja no formato otimizado, verifica no legado
-        if (!ScrumPokerStorage.ceremonyExists(_code) || _sessionIndex >= ds._deprecatedFunctionalitySessions[_code].length) {
-            return false;
-        }
-        return ds._deprecatedFunctionalitySessions[_code][_sessionIndex].hasVoted[_participant];
+        if (_sessionIdx >= ScrumPokerStorage.diamondStorage().functionalityVoteSessions[codeHash].length) return false;
+        return ScrumPokerStorage.diamondStorage().functionalityVoteSessions[codeHash][_sessionIdx].hasVoted[_participant];
     }
 
-    /**
-     * @notice Obtém o voto de um participante em uma sessão de funcionalidade.
-     * @param _code Código da cerimônia.
-     * @param _sessionIndex Índice da sessão.
-     * @param _participant Endereço do participante.
-     * @return uint256 Valor do voto.
-     */
-    function getFunctionalityVote(string memory _code, uint256 _sessionIndex, address _participant) 
-        external 
-        view 
-        returns (uint256) 
+    function getFunctionalityVote(string memory _code, uint256 _sessionIdx, address _participant)
+        external
+        view
+        returns (uint256)
     {
-        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
-        
-        // Verifica em ambos os formatos (otimizado e legado)
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHashView(_code);
-        
-        // Verifica no formato otimizado
-        if (_sessionIndex < ds.functionalityVoteSessions[codeHash].length &&
-            ds.functionalityVoteSessions[codeHash][_sessionIndex].hasVoted[_participant]) {
-            return ds.functionalityVoteSessions[codeHash][_sessionIndex].votes[_participant];
-        }
-        
-        // Caso não esteja no formato otimizado, verifica no legado
-        if (!ScrumPokerStorage.ceremonyExists(_code) || _sessionIndex >= ds._deprecatedFunctionalitySessions[_code].length) {
-            return 0;
-        }
-        return ds._deprecatedFunctionalitySessions[_code][_sessionIndex].votes[_participant];
+        if (_sessionIdx >= ScrumPokerStorage.diamondStorage().functionalityVoteSessions[codeHash].length) return 0;
+        return ScrumPokerStorage.diamondStorage().functionalityVoteSessions[codeHash][_sessionIdx].votes[_participant];
     }
 
-    /**
-     * @dev Verifica se um endereço tem um papel específico.
-     * @param role O papel a ser verificado.
-     * @param account O endereço a ser verificado.
-     * @return bool Verdadeiro se o endereço tiver o papel.
-     */
+    /*──────────────────────── Internal helpers ───────────────────*/
     function _hasRole(bytes32 role, address account) internal view returns (bool) {
         return ScrumPokerStorage.diamondStorage().roles[role][account];
     }

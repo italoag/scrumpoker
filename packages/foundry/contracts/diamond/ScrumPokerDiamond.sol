@@ -36,8 +36,7 @@ contract ScrumPokerDiamond is OwnableDiamond, DiamondERC165, ReentrancyGuardUpgr
      * @param _initialOwner Endereço do proprietário inicial do contrato.
      */
     constructor(address _initialOwner) {
-        // Initialize reentrancy guard storage layout
-        __ReentrancyGuard_init();
+        // ReentrancyGuard (non-upgradeable) does not need explicit initialization
         // Inicializa o contrato como proprietário
         _transferOwnership(_initialOwner);
     }

@@ -108,14 +108,13 @@ contract ScrumPokerDiamondTest is Test {
         // Adicionar a faceta administrativa ao diamond
         IDiamondCut(address(diamond)).diamondCut(cuts, address(0), "");
         
+        
         // Inicializar a faceta administrativa
         // Isso também concede o papel ADMIN_ROLE ao owner
         uint256 initialExchangeRate = 1e18; // 1 ETH = 1 USD para simplificar
         uint256 vestingPeriod = 30 days;
-        (bool success, ) = address(diamond).call(
-            abi.encodeWithSelector(adminFacet.initialize.selector, initialExchangeRate, vestingPeriod, owner)
-        );
-        require(success, "Falha ao inicializar a faceta administrativa");
+        (bool success, ) = address(diamond).call(abi.encodeWithSelector(adminFacet.initialize.selector, initialExchangeRate, vestingPeriod, owner));
+        require(success, "Falha ao inicializar AdminFacet");
         
         vm.stopPrank();
     }
