@@ -36,6 +36,8 @@ contract ScrumPokerDiamond is OwnableDiamond, DiamondERC165, ReentrancyGuardUpgr
      * @param _initialOwner Endereço do proprietário inicial do contrato.
      */
     constructor(address _initialOwner) {
+        // Initialize reentrancy guard storage layout
+        __ReentrancyGuard_init();
         // Inicializa o contrato como proprietário
         _transferOwnership(_initialOwner);
     }
@@ -55,6 +57,10 @@ contract ScrumPokerDiamond is OwnableDiamond, DiamondERC165, ReentrancyGuardUpgr
             bytes4 ownerSelector = bytes4(keccak256("owner()"));
             bytes4 getExchangeRateSelector = bytes4(keccak256("getExchangeRate()"));
             bytes4 setMaxContributionSelector = bytes4(keccak256("setMaxContribution(uint256)"));
+            // Permitir reembolsos e leitura de cotação/votos durante pausa
+            bytes4 refundNFTSelector = bytes4(keccak256("refundNFT()"));
+            bytes4 voteSelector = bytes4(keccak256("vote(string,uint256)"));
+            bytes4 voteFuncSelector = bytes4(keccak256("voteFunctionality(string,uint256,uint256)"));
             
             require(
                 selector_ == unpauseSelector ||
@@ -62,7 +68,10 @@ contract ScrumPokerDiamond is OwnableDiamond, DiamondERC165, ReentrancyGuardUpgr
                 selector_ == isPausedSelector ||
                 selector_ == ownerSelector ||
                 selector_ == getExchangeRateSelector ||
-                selector_ == setMaxContributionSelector,
+                selector_ == setMaxContributionSelector ||
+                selector_ == refundNFTSelector ||
+                selector_ == voteSelector ||
+                selector_ == voteFuncSelector,
                 "ScrumPokerDiamond: contrato pausado"
             );
         }

@@ -22,6 +22,10 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
     event FunctionalityVoteCast(string ceremonyCode, uint256 sessionIndex, address indexed participant, uint256 voteValue);
     event FunctionalityVoteClosed(string ceremonyCode, uint256 sessionIndex, address indexed closer);
     event NFTBadgeUpdated(address indexed participant, uint256 tokenId, uint256 sprintNumber);
+    // Novo evento para indicar conclusão parcial de atualização dos badges
+    event BadgeBatchProcessed(string ceremonyCode, uint256 startIndex, uint256 endIndex);
+    // Evento para indicar tentativa de voto inválido
+    event VoteRejected(string ceremonyCode, address indexed participant, uint256 invalidValue);
 
     // Erros
     error CeremonyNotFound();
@@ -32,6 +36,12 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
     error NFTNotVested();
     error SessionNotFound();
     error SessionNotActive();
+    error InvalidRange();
+    error DuplicateFunctionalitySession();
+    error InvalidVoteValue();
+
+    // Limites de voto (0 ≤ valor ≤ MAX_VOTE_VALUE)
+    uint256 public constant MAX_VOTE_VALUE = 100;
 
     /**
      * @dev Modificador que verifica se o contrato não está pausado.
@@ -85,6 +95,8 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
         
         // Verifica o período de vesting
         if (block.timestamp < ds.vestingStart[msg.sender] + ds.vestingPeriod) revert NFTNotVested();
+        // Limita o valor do voto
+        if (_voteValue > MAX_VOTE_VALUE) revert InvalidVoteValue();
 
         // Registra o voto no formato otimizado
         ds.ceremonyVotes[codeHash][msg.sender] = _voteValue;
@@ -135,13 +147,28 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
         // Obtém o hash do código para armazenamento otimizado
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
         
+        // Hash do código da funcionalidade para comparação
+        bytes32 functionalityHash = _functionalityCode.stringToBytes32();
+
+        // Verifica duplicidade no formato otimizado
+        for (uint256 i = 0; i < ds.functionalityVoteSessions[codeHash].length; i++) {
+            if (ds.functionalityVoteSessions[codeHash][i].functionalityCodeHash == functionalityHash) {
+                revert DuplicateFunctionalitySession();
+            }
+        }
+        // Verifica duplicidade no formato legado
+        for (uint256 i = 0; i < ds._deprecatedFunctionalitySessions[_code].length; i++) {
+            if (ds._deprecatedFunctionalitySessions[_code][i].functionalityCodeHash == functionalityHash) {
+                revert DuplicateFunctionalitySession();
+            }
+        }
+
         // Cria uma nova sessão no formato otimizado
         uint256 sessionIndex = ds.functionalityVoteSessions[codeHash].length;
         ds.functionalityVoteSessions[codeHash].push();
         ScrumPokerStorage.FunctionalityVoteSession storage session = ds.functionalityVoteSessions[codeHash][sessionIndex];
-        
-        // Configura os campos da sessão, incluindo o hash do código da funcionalidade
-        bytes32 functionalityHash = _functionalityCode.stringToBytes32();
+
+        // Configura os campos da sessão
         session.functionalityCodeHash = functionalityHash;
         session.functionalityCode = _functionalityCode;
         session.active = true;
@@ -219,6 +246,8 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
         // Verifica se a sessão está ativa
         if (!session.active) revert SessionNotActive();
         if (session.hasVoted[msg.sender]) revert AlreadyVoted();
+        // Limita o valor do voto
+        if (_voteValue > MAX_VOTE_VALUE) revert InvalidVoteValue();
         if (block.timestamp < ds.vestingStart[msg.sender] + ds.vestingPeriod) revert NFTNotVested();
 
         // Registra o voto no formato otimizado
@@ -297,7 +326,26 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
      * @param _code Código único da cerimônia.
      * Requisito: A cerimônia deve estar concluída.
      */
-    function updateBadges(string memory _code) external nonReentrant whenNotPaused {
+    /**
+     * @notice (DEPRECATED) Use updateBadgesRange para processar em lotes e evitar estouro de gas.
+     */
+    function updateBadges(string memory /*_code*/) external pure {
+        revert("VotingFacet: use updateBadgesRange");
+    }
+
+    /**
+     * @notice Atualiza os badges em lotes, processando participantes entre índices [start, end).
+     * Reverte se o intervalo for inválido ou exceder o tamanho do array.
+     * @param _code Código único da cerimônia.
+     * @param start Índice inicial (inclusivo).
+     * @param end Índice final (exclusivo).
+     */
+    function updateBadgesRange(string memory _code, uint256 start, uint256 end)
+        external
+        nonReentrant
+        whenNotPaused
+    {
+        if (end <= start) revert InvalidRange();
         // Verifica se o storage está na versão correta
         ScrumPokerStorage.requireCorrectStorageVersion();
         
@@ -317,7 +365,7 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
 
         // Nota: Manter o acesso direto ao length para evitar Stack too deep
-        for (uint256 i = 0; i < ceremony.participants.length; i++) {
+        for (uint256 i = start; i < end; i++) {
             address participant = ceremony.participants[i];
             uint256 tokenId = ds.userToken[participant];
             if (tokenId == 0) continue;

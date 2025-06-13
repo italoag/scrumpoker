@@ -32,11 +32,14 @@ contract NFTFacet is
     event FundsWithdrawn(address indexed owner, uint256 amount);
     event NFTBadgeMinted(address indexed participant, uint256 tokenId, uint256 sprintNumber);
     event QuoteOutdated(uint256 lastUpdated);
+    event NFTRefunded(address indexed buyer, uint256 tokenId, uint256 amountRefunded);
 
     // Erros
     error IncorrectPaymentAmount();
     error NFTAlreadyPurchased();
     error WithdrawalFailed();
+    error NotPaused();
+    error NoNFT();
     error NotAuthorized();
 
     /**
@@ -87,6 +90,9 @@ contract NFTFacet is
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
         
         // Verifica se a cotação está atualizada
+        // Ensure quote is not older than 24h; revert if outdated
+        require(block.timestamp <= ds.lastExchangeRateUpdate + 1 days, "NFTFacet: price quote outdated");
+        
         _checkQuoteOutdated(ds.lastExchangeRateUpdate);
         
         // Verifica o valor enviado
@@ -195,6 +201,28 @@ contract NFTFacet is
     // Removido o override da função _burn para compatibilidade com OpenZeppelin
     function tokenURI(uint256 tokenId) public view override(ERC721Upgradeable, ERC721URIStorageUpgradeable) returns (string memory) {
         return super.tokenURI(tokenId);
+    }
+
+    /**
+     * @notice Permite ao usuário devolver o NFT e receber reembolso quando o contrato estiver pausado.
+     * @dev Queima o NFT e devolve exatamente `exchangeRate` em ETH.
+     */
+    function refundNFT() external nonReentrant {
+        if (!ScrumPokerStorage.diamondStorage().paused) revert NotPaused();
+        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
+        uint256 tokenId = ds.userToken[msg.sender];
+        if (tokenId == 0) revert NoNFT();
+        require(ownerOf(tokenId) == msg.sender, "NFTFacet: not owner");
+
+        // Burn NFT
+        _burn(tokenId);
+        delete ds.userToken[msg.sender];
+
+        uint256 refundAmount = ds.exchangeRate;
+        (bool success, ) = payable(msg.sender).call{value: refundAmount}("");
+        if (!success) revert WithdrawalFailed();
+
+        emit NFTRefunded(msg.sender, tokenId, refundAmount);
     }
 
     function supportsInterface(bytes4 interfaceId) public view override(ERC721Upgradeable, ERC721URIStorageUpgradeable) returns (bool) {

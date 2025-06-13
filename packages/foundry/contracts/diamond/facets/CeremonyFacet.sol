@@ -94,7 +94,8 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
         
         // Gera um código único para a cerimônia
         // Uso de abi.encode para prevenir colisões de hash
-        string memory code = string(abi.encode("CEREMONY", uint2str(ds.ceremonyCounter)));
+        // Use abi.encodePacked instead of abi.encode to produce a clean UTF-8 string without ABI metadata
+        string memory code = string(abi.encodePacked("CEREMONY", uint2str(ds.ceremonyCounter)));
         
         // Gera o hash do código para usar como chave otimizada
         bytes32 codeHash = ScrumPokerStorage.registerCeremonyCode(code);

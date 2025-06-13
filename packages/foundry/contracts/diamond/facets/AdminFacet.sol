@@ -103,6 +103,8 @@ contract AdminFacet is Initializable, ReentrancyGuardUpgradeable {
      */
     function updateExchangeRate(uint256 newRate) external nonReentrant onlyRole(ScrumPokerStorage.PRICE_UPDATER_ROLE) {
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
+        // Validate newRate > 0 to avoid disabling purchases
+        require(newRate > 0, "AdminFacet: rate must be > 0");
         ds.exchangeRate = newRate;
         ds.lastExchangeRateUpdate = block.timestamp;
         emit ExchangeRateUpdated(newRate, block.timestamp);
