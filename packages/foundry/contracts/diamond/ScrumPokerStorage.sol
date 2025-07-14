@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./library/StringUtils.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-
+import "@openzeppelin/contracts/interfaces/IERC20.sol";
 /**
  * @title ScrumPokerStorage
  * @dev Contrato de armazenamento para o padrão Diamond do ScrumPoker.
@@ -75,6 +74,8 @@ library ScrumPokerStorage {
         mapping(address => bool) hasVoted;
         // Armazena o voto do participante nesta sessão: participante => valor
         mapping(address => uint256) votes;
+        // Commit para vote privacy
+        mapping(address => bytes32) commits;
     }
 
     /**
@@ -111,6 +112,8 @@ library ScrumPokerStorage {
         mapping(bytes32 => mapping(address => bool)) ceremonyApproved;    // Hash => (endereço => aprovado)
         mapping(bytes32 => mapping(address => bool)) ceremonyHasVoted;    // Hash => (endereço => votou)
         mapping(bytes32 => mapping(address => uint256)) ceremonyVotes;   // Hash => (endereço => valor)
+        // Commit for ceremony votes
+        mapping(bytes32 => mapping(address => bytes32)) ceremonyVoteCommits;
 
         // Votações de Funcionalidades (otimizado)
         mapping(bytes32 => FunctionalityVoteSession[]) functionalityVoteSessions; // Hash => sessões

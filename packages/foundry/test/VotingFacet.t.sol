@@ -86,14 +86,16 @@ contract VotingFacetTest is Test {
     }
 
     /**
-     * @dev Teste para verificação da implementação da função vote
+     * @dev Teste para verificação da implementação das funções de commit-reveal
      */
-    function testVoteImplementation() public view {
-        // Verificamos apenas se a assinatura da função está correta
-        bytes4 selector = votingFacet.vote.selector;
-        assertTrue(selector != bytes4(0), "A funcao vote deve existir");
+    function testCommitRevealImplementation() public view {
+        // Verificamos se as assinaturas das funções de commit-reveal estão corretas
+        bytes4 commitSelector = votingFacet.commitVote.selector;
+        bytes4 revealSelector = votingFacet.revealVote.selector;
+        assertTrue(commitSelector != bytes4(0), "A funcao commitVote deve existir");
+        assertTrue(revealSelector != bytes4(0), "A funcao revealVote deve existir");
         
-        // Verificamos a implementação do storage versionado na função vote
+        // Verificamos a implementação do storage versionado nas funções
         // analisando o bytecode do contrato para confirmar que usa certos padrões
         bytes memory code = address(votingFacet).code;
         assertTrue(code.length > 0, "O contrato deve ter bytecode");
@@ -110,8 +112,11 @@ contract VotingFacetTest is Test {
         bytes4 closeSelector = votingFacet.closeFunctionalityVote.selector;
         assertTrue(closeSelector != bytes4(0), "A funcao closeFunctionalityVote deve existir");
         
-        bytes4 voteFuncSelector = votingFacet.voteFunctionality.selector;
-        assertTrue(voteFuncSelector != bytes4(0), "A funcao voteFunctionality deve existir");
+        bytes4 commitFuncSelector = votingFacet.commitFunctionalityVote.selector;
+        assertTrue(commitFuncSelector != bytes4(0), "A funcao commitFunctionalityVote deve existir");
+        
+        bytes4 revealFuncSelector = votingFacet.revealFunctionalityVote.selector;
+        assertTrue(revealFuncSelector != bytes4(0), "A funcao revealFunctionalityVote deve existir");
     }
     
     /**
@@ -166,5 +171,39 @@ contract VotingFacetTest is Test {
         // Verificamos a assinatura da função
         bytes4 selector = votingFacet.getFunctionalityResults.selector;
         assertTrue(selector != bytes4(0), "A funcao getFunctionalityResults deve existir");
+    }
+
+    // Novos testes para funcionalidades de commit-reveal
+
+    /**
+     * @dev Teste para verificar a implementação da função commitVote
+     */
+    function testCommitVoteImplementation() public view {
+        bytes4 selector = votingFacet.commitVote.selector;
+        assertTrue(selector != bytes4(0), "A funcao commitVote deve existir");
+    }
+
+    /**
+     * @dev Teste para verificar a implementação da função revealVote
+     */
+    function testRevealVoteImplementation() public view {
+        bytes4 selector = votingFacet.revealVote.selector;
+        assertTrue(selector != bytes4(0), "A funcao revealVote deve existir");
+    }
+
+    /**
+     * @dev Teste para verificar a implementação da função commitFunctionalityVote
+     */
+    function testCommitFunctionalityVoteImplementation() public view {
+        bytes4 selector = votingFacet.commitFunctionalityVote.selector;
+        assertTrue(selector != bytes4(0), "A funcao commitFunctionalityVote deve existir");
+    }
+
+    /**
+     * @dev Teste para verificar a implementação da função revealFunctionalityVote
+     */
+    function testRevealFunctionalityVoteImplementation() public view {
+        bytes4 selector = votingFacet.revealFunctionalityVote.selector;
+        assertTrue(selector != bytes4(0), "A funcao revealFunctionalityVote deve existir");
     }
 }

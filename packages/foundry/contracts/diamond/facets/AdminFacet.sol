@@ -8,6 +8,17 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../ScrumPokerStorage.sol";
 import "../library/ValidationUtils.sol";
 
+// Interface simples para oráculo de preços (ex.: Chainlink)
+interface IPriceOracle {
+    function latestRoundData() external view returns (
+        uint80 roundId,
+        int256 answer,
+        uint256 startedAt,
+        uint256 updatedAt,
+        uint80 answeredInRound
+    );
+}
+
 /**
  * @title AdminFacet
  * @dev Faceta de administração para o contrato ScrumPoker Diamond.
@@ -37,6 +48,7 @@ contract AdminFacet is Initializable, ReentrancyGuardUpgradeable {
     event VestingPeriodUpdated(uint256 oldPeriod, uint256 newPeriod);
     event FundsWithdrawn(address indexed to, uint256 amount);
     event ERC20TokensWithdrawn(address indexed token, address indexed to, uint256 amount);
+    event ExchangeRateUpdatedFromOracle(uint256 newRate, uint256 timestamp);
     
     // Erros personalizados para mensagens mais claras
     error NotAuthorized();
@@ -44,6 +56,8 @@ contract AdminFacet is Initializable, ReentrancyGuardUpgradeable {
     error InsufficientFunds(uint256 requested, uint256 available);
     error InvalidVestingPeriod();
     error TransferFailed();
+    error OracleFailure();
+    error InvalidOracleData();
 
     /**
      * @dev Modificador que verifica se o chamador tem um papel específico.
@@ -108,6 +122,35 @@ contract AdminFacet is Initializable, ReentrancyGuardUpgradeable {
         ds.exchangeRate = newRate;
         ds.lastExchangeRateUpdate = block.timestamp;
         emit ExchangeRateUpdated(newRate, block.timestamp);
+    }
+
+    /**
+     * @notice Atualiza a taxa de câmbio usando dados do oráculo.
+     */
+    function updateExchangeRateFromOracle() external nonReentrant onlyRole(ScrumPokerStorage.PRICE_UPDATER_ROLE) {
+        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
+        address oracleAddr = ds.priceOracle;
+        if (oracleAddr == address(0)) revert ZeroAddress();
+
+        IPriceOracle oracle = IPriceOracle(oracleAddr);
+        try oracle.latestRoundData() returns (
+            uint80 roundId,
+            int256 answer,
+            uint256,
+            uint256 updatedAt,
+            uint80
+        ) {
+            if (roundId == 0) revert InvalidOracleData();
+            if (answer <= 0) revert InvalidOracleData();
+            if (updatedAt == 0 || updatedAt > block.timestamp) revert InvalidOracleData();
+
+            uint256 newRate = uint256(answer); // Assumindo que o oráculo retorna o preço em wei por dólar ou ajuste conforme necessário
+            ds.exchangeRate = newRate;
+            ds.lastExchangeRateUpdate = block.timestamp;
+            emit ExchangeRateUpdatedFromOracle(newRate, block.timestamp);
+        } catch {
+            revert OracleFailure();
+        }
     }
 
     /**

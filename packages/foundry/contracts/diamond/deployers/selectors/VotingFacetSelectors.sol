@@ -13,17 +13,19 @@ library VotingFacetSelectors {
      * @return Array de seletores como bytes4[]
      */
     function getSelectors() internal pure returns (bytes4[] memory) {
-        bytes4[] memory selectors = new bytes4[](10);
+        bytes4[] memory selectors = new bytes4[](12);
         selectors[0] = VotingFacet.initializeVoting.selector;
-        selectors[1] = VotingFacet.vote.selector;
-        selectors[2] = VotingFacet.openFunctionalityVote.selector;
-        selectors[3] = VotingFacet.voteFunctionality.selector;
-        selectors[4] = VotingFacet.closeFunctionalityVote.selector;
-        selectors[5] = VotingFacet.updateBadgesRange.selector;
-        selectors[6] = VotingFacet.hasVoted.selector;
-        selectors[7] = VotingFacet.getVote.selector;
-        selectors[8] = VotingFacet.hasFunctionalityVoted.selector;
-        selectors[9] = VotingFacet.getFunctionalityVote.selector;
+        selectors[1] = VotingFacet.commitVote.selector;
+        selectors[2] = VotingFacet.revealVote.selector;
+        selectors[3] = VotingFacet.openFunctionalityVote.selector;
+        selectors[4] = VotingFacet.commitFunctionalityVote.selector;
+        selectors[5] = VotingFacet.revealFunctionalityVote.selector;
+        selectors[6] = VotingFacet.closeFunctionalityVote.selector;
+        selectors[7] = VotingFacet.updateBadgesRange.selector;
+        selectors[8] = VotingFacet.hasVoted.selector;
+        selectors[9] = VotingFacet.getVote.selector;
+        selectors[10] = VotingFacet.hasFunctionalityVoted.selector;
+        selectors[11] = VotingFacet.getFunctionalityVote.selector;
         return selectors;
     }
 }

@@ -25,6 +25,10 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
     event FunctionalityVoteClosed(string ceremonyCode, uint256 sessionIndex, address indexed closer);
     event NFTBadgeUpdated(address indexed participant, uint256 tokenId, uint256 sprintNumber);
     event BadgeBatchProcessed(string ceremonyCode, uint256 startIndex, uint256 endIndex);
+    event VoteCommitted(string ceremonyCode, address indexed participant);
+    event VoteRevealed(string ceremonyCode, address indexed participant, uint256 voteValue);
+    event FunctionalityVoteCommitted(string ceremonyCode, uint256 sessionIndex, address indexed participant);
+    event FunctionalityVoteRevealed(string ceremonyCode, uint256 sessionIndex, address indexed participant, uint256 voteValue);
 
     /*─────────────────────────── Errors ───────────────────────────*/
     error CeremonyNotFound();
@@ -38,6 +42,11 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
     error DuplicateFunctionalitySession();
     error InvalidRange();
     error InvalidVoteValue();
+    error InvalidCommit();
+    error AlreadyCommitted();
+    error NoCommitFound();
+    error RevealPhaseNotActive();
+    error InvalidReveal();
 
     /*─────────────────────────── Constants ────────────────────────*/
     uint256 public constant MAX_VOTE_VALUE = 100;
@@ -55,7 +64,8 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
     }
 
     /*────────────────────────── General Vote ─────────────────────*/
-    function vote(string memory _code, uint256 _voteValue) external whenNotPaused {
+    // Commit phase for general vote
+    function commitVote(string memory _code, bytes32 _commit) external whenNotPaused {
         ScrumPokerStorage.requireCorrectStorageVersion();
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
 
@@ -66,16 +76,44 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
         bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
         if (!ds.ceremonyApproved[codeHash][msg.sender]) revert ParticipantNotApproved();
         if (ds.ceremonyHasVoted[codeHash][msg.sender]) revert AlreadyVoted();
-        if (_voteValue > MAX_VOTE_VALUE) revert InvalidVoteValue();
+        if (ds.ceremonyVoteCommits[codeHash][msg.sender] != bytes32(0)) revert AlreadyCommitted();
         if (block.timestamp < ds.vestingStart[msg.sender] + ds.vestingPeriod) revert NFTNotVested();
+
+        ds.ceremonyVoteCommits[codeHash][msg.sender] = _commit;
+
+        emit VoteCommitted(_code, msg.sender);
+    }
+
+    // Reveal phase for general vote
+    function revealVote(string memory _code, uint256 _voteValue, bytes32 _salt) external whenNotPaused {
+        ScrumPokerStorage.requireCorrectStorageVersion();
+        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
+
+        if (!ScrumPokerStorage.ceremonyExists(_code)) revert CeremonyNotFound();
+        ScrumPokerStorage.Ceremony storage ceremony = ScrumPokerStorage.getCeremony(_code);
+        if (!ceremony.active) revert CeremonyNotActive(); // Assume reveal only when active; adjust if needed
+
+        bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
+        bytes32 commit = ds.ceremonyVoteCommits[codeHash][msg.sender];
+        if (commit == bytes32(0)) revert NoCommitFound();
+        if (ds.ceremonyHasVoted[codeHash][msg.sender]) revert AlreadyVoted();
+
+        bytes32 expectedCommit = keccak256(abi.encodePacked(_voteValue, _salt, msg.sender));
+        if (commit != expectedCommit) revert InvalidReveal();
+
+        if (_voteValue > MAX_VOTE_VALUE) revert InvalidVoteValue();
 
         ds.ceremonyVotes[codeHash][msg.sender] = _voteValue;
         ds.ceremonyHasVoted[codeHash][msg.sender] = true;
 
+        // Clear commit after reveal
+        delete ds.ceremonyVoteCommits[codeHash][msg.sender];
+
         uint256 tokenId = ds.userToken[msg.sender];
         if (tokenId != 0) ds.badgeData[tokenId].votesCast++;
 
-        emit VoteCast(_code, msg.sender, _voteValue);
+        emit VoteRevealed(_code, msg.sender, _voteValue);
+        emit VoteCast(_code, msg.sender, _voteValue); // Keep original event
     }
 
     /*────────────────── Functionality Vote Sessions ──────────────*/
@@ -114,10 +152,8 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
         emit FunctionalityVoteOpened(_code, _functionality, newIdx);
     }
 
-    function voteFunctionality(string memory _code, uint256 _sessionIdx, uint256 _voteValue)
-        external
-        whenNotPaused
-    {
+    // Commit for functionality vote
+    function commitFunctionalityVote(string memory _code, uint256 _sessionIdx, bytes32 _commit) external whenNotPaused {
         ScrumPokerStorage.requireCorrectStorageVersion();
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
 
@@ -132,12 +168,44 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
         ScrumPokerStorage.FunctionalityVoteSession storage s = ds.functionalityVoteSessions[codeHash][_sessionIdx];
         if (!s.active) revert SessionNotActive();
         if (s.hasVoted[msg.sender]) revert AlreadyVoted();
+        if (s.commits[msg.sender] != bytes32(0)) revert AlreadyCommitted();
+
+        s.commits[msg.sender] = _commit;
+
+        emit FunctionalityVoteCommitted(_code, _sessionIdx, msg.sender);
+    }
+
+    // Reveal for functionality vote
+    function revealFunctionalityVote(string memory _code, uint256 _sessionIdx, uint256 _voteValue, bytes32 _salt) external whenNotPaused {
+        ScrumPokerStorage.requireCorrectStorageVersion();
+        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
+
+        if (!ScrumPokerStorage.ceremonyExists(_code)) revert CeremonyNotFound();
+        ScrumPokerStorage.Ceremony storage ceremony = ScrumPokerStorage.getCeremony(_code);
+        if (!ceremony.active) revert CeremonyNotActive();
+
+        bytes32 codeHash = ScrumPokerStorage.getCeremonyCodeHash(_code);
+        if (_sessionIdx >= ds.functionalityVoteSessions[codeHash].length) revert SessionNotFound();
+
+        ScrumPokerStorage.FunctionalityVoteSession storage s = ds.functionalityVoteSessions[codeHash][_sessionIdx];
+        if (!s.active) revert SessionNotActive();
+        bytes32 commit = s.commits[msg.sender];
+        if (commit == bytes32(0)) revert NoCommitFound();
+        if (s.hasVoted[msg.sender]) revert AlreadyVoted();
+
+        bytes32 expectedCommit = keccak256(abi.encodePacked(_voteValue, _salt, msg.sender));
+        if (commit != expectedCommit) revert InvalidReveal();
+
         if (_voteValue > MAX_VOTE_VALUE) revert InvalidVoteValue();
         if (block.timestamp < ds.vestingStart[msg.sender] + ds.vestingPeriod) revert NFTNotVested();
 
         s.votes[msg.sender] = _voteValue;
         s.hasVoted[msg.sender] = true;
 
+        // Clear commit
+        delete s.commits[msg.sender];
+
+        emit FunctionalityVoteRevealed(_code, _sessionIdx, msg.sender, _voteValue);
         emit FunctionalityVoteCast(_code, _sessionIdx, msg.sender, _voteValue);
     }
 

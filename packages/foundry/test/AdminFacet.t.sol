@@ -75,11 +75,41 @@ contract MockERC20 is IERC20 {
     }
 }
 
+// Mock PriceOracle para testes
+contract MockPriceOracle {
+    int256 public price;
+    uint256 public updatedAt;
+    bool public shouldFail;
+
+    function setPrice(int256 _price) external {
+        price = _price;
+        updatedAt = block.timestamp;
+    }
+
+    function setShouldFail(bool _fail) external {
+        shouldFail = _fail;
+    }
+
+    function latestRoundData() external view returns (
+        uint80 roundId,
+        int256 answer,
+        uint256 startedAt,
+        uint256 _updatedAt,
+        uint80 answeredInRound
+    ) {
+        if (shouldFail) {
+            revert("Oracle failed");
+        }
+        return (1, price, block.timestamp, updatedAt, 1);
+    }
+}
+
 // Eventos para testes
 event VestingPeriodUpdated(uint256 oldPeriod, uint256 newPeriod);
 event FundsWithdrawn(address indexed to, uint256 amount);
 event ERC20TokensWithdrawn(address indexed token, address indexed to, uint256 amount);
 event PriceOracleUpdated(address indexed newOracle);
+event ExchangeRateUpdatedFromOracle(uint256 newRate, uint256 timestamp);
 
 contract AdminFacetTest is Test {
     AdminFacet adminFacet;
@@ -94,6 +124,9 @@ contract AdminFacetTest is Test {
     // Contrato Mock ERC20 para testes
     MockERC20 mockToken;
 
+    // Mock PriceOracle para testes
+    MockPriceOracle mockOracle;
+
     // Inicialização dos testes com controle de estado
     function setUp() public {
         // Deploy do contrato AdminFacet
@@ -104,6 +137,9 @@ contract AdminFacetTest is Test {
         
         // Deploy do token mock para testes de withdrawERC20
         mockToken = new MockERC20("Mock Token", "MOCK");
+
+        // Deploy do mock oracle
+        mockOracle = new MockPriceOracle();
     }
 
     // Verifica se a inicialização configura corretamente os valores e papéis
@@ -170,7 +206,7 @@ contract AdminFacetTest is Test {
 
     // Verifica a configuração do oráculo de preços
     function testSetPriceOracle() public {
-        address oracle = address(0xBEEF);
+        address oracle = address(mockOracle);
         
         // Verificar evento sendo emitido
         vm.expectEmit(true, false, false, false);
@@ -338,5 +374,57 @@ contract AdminFacetTest is Test {
         vm.prank(user);
         vm.expectRevert();
         adminFacet.withdrawERC20(address(mockToken), recipient, 50 * 10**18);
+    }
+
+    // Novos testes para integração com oráculo
+
+
+
+    function testUpdateExchangeRateFromOracleSuccess() public {
+        address oracleAddr = address(mockOracle);
+        vm.prank(owner);
+        adminFacet.setPriceOracle(oracleAddr);
+
+        int256 testPrice = int256(2e18);
+        mockOracle.setPrice(testPrice);
+
+        vm.expectEmit(false, false, false, true);
+        emit ExchangeRateUpdatedFromOracle(uint256(testPrice), block.timestamp);
+
+        vm.prank(owner);
+        adminFacet.updateExchangeRateFromOracle();
+
+        uint256 newRate = adminFacet.getExchangeRate();
+        assertEq(newRate, uint256(testPrice));
+    }
+
+    function testUpdateExchangeRateFromOracleFailure() public {
+        address oracleAddr = address(mockOracle);
+        vm.prank(owner);
+        adminFacet.setPriceOracle(oracleAddr);
+
+        mockOracle.setShouldFail(true);
+
+        vm.prank(owner);
+        vm.expectRevert(AdminFacet.OracleFailure.selector);
+        adminFacet.updateExchangeRateFromOracle();
+    }
+
+    function testUpdateExchangeRateFromOracleInvalidData() public {
+        address oracleAddr = address(mockOracle);
+        vm.prank(owner);
+        adminFacet.setPriceOracle(oracleAddr);
+
+        mockOracle.setPrice(0); // Preço inválido
+
+        vm.prank(owner);
+        vm.expectRevert(AdminFacet.InvalidOracleData.selector);
+        adminFacet.updateExchangeRateFromOracle();
+    }
+
+    function testUpdateExchangeRateFromOracleNoOracleSet() public {
+        vm.prank(owner);
+        vm.expectRevert(AdminFacet.ZeroAddress.selector);
+        adminFacet.updateExchangeRateFromOracle();
     }
 }
