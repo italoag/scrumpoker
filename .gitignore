@@ -20,7 +20,7 @@ node_modules
 .idea
 
 forge.yaml
-plan/
+plans/
 
 # cli
 dist
