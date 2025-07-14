@@ -19,5 +19,7 @@ node_modules
 .vscode
 .idea
 
+forge.yaml
+
 # cli
 dist
