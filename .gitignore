@@ -24,3 +24,4 @@ plans/
 
 # cli
 dist
+bun.lock
