@@ -25,7 +25,6 @@ chiado = "https://rpc.chiadochain.net"
 base = "https://mainnet.base.org"
 baseSepolia = "https://sepolia.base.org"
 
-
 [etherscan]
 # polygonMum = { key = "${ETHERSCAN_API_KEY}" }
 # sepolia = { key = "${ETHERSCAN_API_KEY}" }

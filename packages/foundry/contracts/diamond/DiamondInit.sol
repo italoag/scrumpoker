@@ -5,10 +5,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@solidity-lib/diamond/Diamond.sol";
 import "./ScrumPokerStorage.sol";
-import "./facets/AdminFacet.sol";
-import "./facets/NFTFacet.sol";
-import "./facets/CeremonyFacet.sol";
-import "./facets/VotingFacet.sol";
 
 /**
  * @title DiamondInit
@@ -20,29 +16,22 @@ contract DiamondInit {
 
     /**
      * @notice Inicializa todas as facetas do Diamond.
-     * @param _initialExchangeRate Taxa de câmbio inicial (valor em wei equivalente a 1 dólar).
-     * @param _vestingPeriod Período de vesting em segundos.
-     * @param _admin Endereço do administrador inicial.
+     * @param _name Nome do token NFT.
+     * @param _symbol Símbolo do token NFT.
      */
     function init(
-        uint256 _initialExchangeRate,
-        uint256 _vestingPeriod,
-        address _admin
+        string memory _name,
+        string memory _symbol
     ) external {
-        // Inicializa a faceta de administração
-        AdminFacet adminFacet = AdminFacet(address(this));
-        adminFacet.initialize(_initialExchangeRate, _vestingPeriod, _admin);
+        // Configura o storage do Diamond
+        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
         
-        // Inicializa a faceta de NFT
-        NFTFacet nftFacet = NFTFacet(address(this));
-        nftFacet.initializeNFT("ScrumPokerBadge", "SPB");
-        
-        // Inicializa a faceta de cerimônia
-        CeremonyFacet ceremonyFacet = CeremonyFacet(address(this));
-        ceremonyFacet.initializeCeremony();
-        
-        // Inicializa a faceta de votação
-        VotingFacet votingFacet = VotingFacet(address(this));
-        votingFacet.initializeVoting();
+        // Configurações para AdminFacet
+        ds.exchangeRate = 1000000000000000000; // 1 ETH = 1 USD (valor padrão)
+        ds.lastExchangeRateUpdate = block.timestamp;
+        ds.vestingPeriod = 86400; // 1 dia de vesting (valor padrão)
+        ds.nextTokenId = 0;
+        ds.ceremonyCounter = 1;
+        ds.paused = false;
     }
 }

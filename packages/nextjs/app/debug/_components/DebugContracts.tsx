@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { useSessionStorage } from "usehooks-ts";
 import { BarsArrowUpIcon } from "@heroicons/react/20/solid";
+import { ContractInfo } from "~~/app/debug/_components/ContractInfo";
 import { ContractUI } from "~~/app/debug/_components/contract";
 import { ContractName, GenericContract } from "~~/utils/scaffold-eth/contract";
 import { useAllContracts } from "~~/utils/scaffold-eth/contractsData";
@@ -59,6 +60,19 @@ export function DebugContracts() {
               ))}
             </div>
           )}
+
+          {/* Contract Info Section */}
+          <div className="w-full max-w-7xl px-6 lg:px-10">
+            {contractNames.map(contractName => (
+              <div key={`info-${contractName}`} className={contractName === selectedContract ? "" : "hidden"}>
+                <ContractInfo
+                  contractName={contractName}
+                  contractAddress={(contractsData[contractName] as GenericContract)?.address || ""}
+                />
+              </div>
+            ))}
+          </div>
+
           {contractNames.map(contractName => (
             <ContractUI
               key={contractName}

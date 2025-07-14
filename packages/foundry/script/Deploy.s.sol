@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import "./DeployHelper.s.sol";
-import { DeployYourContract } from "./DeployYourContract.s.sol";
+import { DeployScrumPokerOptimized } from "./DeployScrumPokerOptimized.s.sol";
 import { DeployScrumPokerAll } from "./DeployScrumPokerAll.s.sol";
 import { DeployScrumPokerManual } from "./DeployScrumPokerManual.s.sol";
 
@@ -10,25 +10,25 @@ import { DeployScrumPokerManual } from "./DeployScrumPokerManual.s.sol";
  * @notice Main deployment script for all contracts
  * @dev Run this when you want to deploy multiple contracts at once
  *
- * Example: yarn deploy # runs this script(without`--file` flag)
+ * Example: yarn deploy # runs this script (without `--file` flag)
+ * 
+ * This script now defaults to the OPTIMIZED deployment strategy which provides
+ * the best balance of gas efficiency, comprehensive logging, and robust error handling.
  */
 contract DeployScript is DeployHelper {
-    function run() external DeployerRunner {
-        // Deploys all your contracts sequentially
-        // Add new deployments here when needed
-
-        // Uncomment the deployment option you want to use
+    function run() external {
+        // RECOMMENDED: Deploy using the optimized strategy (best for production)
+        DeployScrumPokerOptimized deployScrumPokerOptimized = new DeployScrumPokerOptimized();
+        deployScrumPokerOptimized.run();
         
-        // Option 1: Example contract (for testing)
-        //DeployYourContract deployYourContract = new DeployYourContract();
-        //deployYourContract.run();
-
-        // Option 2: Deploy ScrumPoker using the Deployer contract (optimized)
-        //DeployScrumPokerAll deployScrumPokerAll = new DeployScrumPokerAll();
-        //deployScrumPokerAll.run();
+        // Alternative deployment options (uncomment to use):
         
-        // Option 3: Deploy ScrumPoker manually (more control, without Deployer)
-        DeployScrumPokerManual deployScrumPokerManual = new DeployScrumPokerManual();
-        deployScrumPokerManual.run();
+        // Option 1: Deploy using factory pattern (standardized, good for CI/CD)
+        // DeployScrumPokerAll deployScrumPokerAll = new DeployScrumPokerAll();
+        // deployScrumPokerAll.run();
+        
+        // Option 2: Deploy manually (maximum control, good for debugging)
+        // DeployScrumPokerManual deployScrumPokerManual = new DeployScrumPokerManual();
+        // deployScrumPokerManual.run();
     }
 }

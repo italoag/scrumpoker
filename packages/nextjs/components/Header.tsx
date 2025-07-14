@@ -22,7 +22,7 @@ export const menuLinks: HeaderMenuLink[] = [
     href: "/",
   },
   {
-    label: "Ponder",
+    label: "ScrumPoker",
     href: "/ponder-greetings",
     icon: <MagnifyingGlassIcon className="h-4 w-4" />,
   },

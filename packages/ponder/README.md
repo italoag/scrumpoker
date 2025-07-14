@@ -1,37 +1,91 @@
-# SE-2 Ponder Extension
+# Ponder Indexing Service - ScrumPoker DApp
 
-This extension allows to use Ponder (https://ponder.sh/) for event indexing on an SE-2 dapp.
+## Overview
+This Ponder service indexes events from the ScrumPoker Diamond pattern contracts deployed on the local blockchain. It provides a GraphQL API for querying ceremony data, votes, and NFT badge information.
 
-Ponder is an open-source framework for blockchain application backends. With Ponder, you can rapidly build & deploy an API that serves custom data from smart contracts on any EVM blockchain.
+## Configuration
 
-## Config
+### Contracts Indexed
+- **CeremonyFacet** (`0xdeb366053b16457d1fe2a6b8559ff713c1bbeb69`)
+  - CeremonyEntryRequested
+  - CeremonyStarted
+  - CeremonyConcluded
+  - EntryApproved
 
-Ponder config (`packages/ponder/ponder.config.ts`) is set automatically from the deployed contracts and using the first blockchain network setup at `packages/nextjs/scaffold.config.ts`.
+- **VotingFacet** (`0x960acb1bb927842ee6718ff8d3550cce942228c2`)
+  - FunctionalityVoteOpened
+  - FunctionalityVoteCommitted
+  - FunctionalityVoteRevealed
+  - FunctionalityVoteCast
+  - FunctionalityVoteClosed
+  - BadgeBatchProcessed
+  - NFTBadgeUpdated
 
-## Design your schema
+### Database Schema
 
-You can define your Ponder data schema on the file at `packages/ponder/ponder.schema.ts` following the Ponder documentation (https://ponder.sh/docs/schema).
+#### Tables
+1. **ceremony** - Main ceremony information
+2. **ceremony_participant** - Participants in each ceremony
+3. **functionality_vote** - Individual votes on functionalities
+4. **functionality_session** - Voting sessions for functionalities
+5. **badge_processing** - NFT badge batch processing events
+6. **nft_badge_update** - Individual NFT badge updates
+7. **ceremony_stats** - Global statistics
 
-## Indexing data
+## Usage
 
-You can index events by adding files to `packages/ponder/src/` (https://ponder.sh/docs/indexing/write-to-the-database)
+### Development
+```bash
+npm run dev
+```
 
-## Start the development server
+### Code Generation
+```bash
+npm run codegen
+```
 
-Run `yarn ponder:dev` to start the Ponder development server, for indexing and serving the GraphQL API endpoint at http://localhost:42069
+### GraphQL Server
+The GraphQL server will be available at `http://localhost:42069` when running in development mode.
 
-## Query the GraphQL API
+### Example Queries
 
-With the dev server running, open http://localhost:42069 in your browser to use the GraphiQL interface. GraphiQL is a useful tool for exploring your schema and testing queries during development. (https://ponder.sh/docs/query/graphql)
+#### Get all ceremonies
+```graphql
+query {
+  ceremonies {
+    id
+    creator
+    title
+    status
+    createdAt
+    participantCount
+  }
+}
+```
 
-You can query data on a page using `@tanstack/react-query`. Check the code at `packages/nextjs/app/greetings/page.ts` to get the greetings updates data and show it.
+#### Get votes for a ceremony
+```graphql
+query {
+  functionalityVotes(where: { ceremonyCode: "CEREMONY_CODE" }) {
+    participant
+    voteValue
+    isRevealed
+    revealedAt
+  }
+}
+```
 
-## Deploy
+## Files Structure
 
-To deploy the Ponder indexer please refer to the Ponder Deploy documentation https://ponder.sh/docs/production/deploy
+- `ponder.config.ts` - Main configuration with contract addresses and ABIs
+- `ponder.schema.ts` - Database schema definitions
+- `src/ceremony.ts` - Indexers for ceremony-related events
+- `src/voting.ts` - Indexers for voting-related events
+- `src/nft.ts` - Indexers for NFT badge events
 
-At **Settings** -> **Deploy** -> you must set **Custom Start Command** to `yarn ponder:start`.
+## Notes
 
-For faster indexing, you can add the ***startBlock*** to each deployed contract on the file `packages/nextjs/contracts/deployedContracts.ts`.
-
-And then you have to set up the `NEXT_PUBLIC_PONDER_URL` env variable on your SE-2 dapp to use the deployed ponder indexer.
+- The configuration uses manually defined ABIs to avoid dependency issues
+- Contract addresses are hardcoded for the local development environment (chainId: 1337)
+- The service automatically creates ceremonies when the first participant requests entry
+- All timestamps are stored as Unix timestamps (seconds since epoch)
