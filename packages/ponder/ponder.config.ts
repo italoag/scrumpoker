@@ -2,6 +2,10 @@ import { createConfig } from "ponder";
 import { http } from "viem";
 
 export default createConfig({
+  database: {
+    kind: "sqlite",
+    directory: "./.ponder/sqlite",
+  },
   networks: {
     localhost: {
       chainId: 1337,
@@ -107,8 +111,8 @@ export default createConfig({
           anonymous: false,
         }
       ],
-      address: "0xdeb366053b16457d1fe2a6b8559ff713c1bbeb69",
-      startBlock: 0,
+      address: "0x82dc47734901ee7d4f4232f398752cb9dd5daccc",
+      startBlock: 15,
     },
     VotingFacet: {
       network: "localhost",
@@ -295,8 +299,85 @@ export default createConfig({
           anonymous: false,
         }
       ],
-      address: "0x960acb1bb927842ee6718ff8d3550cce942228c2",
-      startBlock: 0,
+      address: "0x82dc47734901ee7d4f4232f398752cb9dd5daccc",
+      startBlock: 15,
+    },
+    AdminFacet: {
+      network: "localhost",
+      abi: [
+        {
+          type: "event",
+          name: "ContractPaused",
+          inputs: [
+            {
+              name: "operator",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "ContractUnpaused",
+          inputs: [
+            {
+              name: "operator",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "RoleGranted",
+          inputs: [
+            {
+              name: "role",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+            {
+              name: "account",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "sender",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "ExchangeRateUpdated",
+          inputs: [
+            {
+              name: "newRate",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "timestamp",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        }
+      ],
+      address: "0x82dc47734901ee7d4f4232f398752cb9dd5daccc",
+      startBlock: 15,
     },
   },
 });

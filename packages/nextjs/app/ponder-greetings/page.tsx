@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { gql, request } from "graphql-request";
 import type { NextPage } from "next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Address } from "~~/components/scaffold-eth";
 
 // Tipos para os dados do ScrumPoker
@@ -74,7 +74,7 @@ type ScrumPokerData = {
 };
 
 const fetchScrumPokerData = async () => {
-  // Não fazer fetch durante build time
+  // Durante SSR, retornar dados vazios mas permitir que o cliente faça o fetch
   if (typeof window === 'undefined') {
     return {
       ceremonys: { items: [] },
@@ -153,13 +153,23 @@ const fetchScrumPokerData = async () => {
   `;
   
   try {
+    console.log('Fetching from Ponder URL:', process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069");
+    
     const data = await request<ScrumPokerData>(
       process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069",
       ScrumPokerQuery,
     );
+    
+    console.log('Successfully fetched data:', data);
     return data;
   } catch (error) {
-    console.warn("Failed to fetch ScrumPoker data from Ponder:", error);
+    console.error("Failed to fetch ScrumPoker data from Ponder:", error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      url: process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069"
+    });
+    
     return {
       ceremonys: { items: [] },
       ceremonyParticipants: { items: [] },
@@ -172,6 +182,13 @@ const fetchScrumPokerData = async () => {
 
 const ScrumPokerDashboard: NextPage = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'ceremonies' | 'sessions' | 'votes' | 'participants'>('overview');
+  
+  // Debug: verificar se a variável de ambiente está sendo carregada
+  useEffect(() => {
+    console.log('Environment check:');
+    console.log('NEXT_PUBLIC_PONDER_URL:', process.env.NEXT_PUBLIC_PONDER_URL);
+    console.log('Window object exists:', typeof window !== 'undefined');
+  }, []);
   
   const { data: scrumPokerData, isLoading, error } = useQuery({
     queryKey: ["scrumPokerData"],
