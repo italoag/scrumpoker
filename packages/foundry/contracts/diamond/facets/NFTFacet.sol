@@ -67,10 +67,16 @@ contract NFTFacet is
     function initializeNFT(
         string memory _name,
         string memory _symbol
-    ) external initializer {
+    ) external reinitializer(2) {
+        // Custom initialization guard using Diamond storage
+        require(!ScrumPokerStorage.isFacetInitialized("NFTFacet"), "NFTFacet: already initialized");
+        
         __ERC721_init(_name, _symbol);
         __ERC721URIStorage_init();
         __ReentrancyGuard_init();
+        
+        // Mark facet as initialized
+        ScrumPokerStorage.setFacetInitialized("NFTFacet", 2);
     }
 
     /**
@@ -89,10 +95,7 @@ contract NFTFacet is
     {
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
         
-        // Verifica se a cotação está atualizada
-        // Ensure quote is not older than 24h; revert if outdated
-        require(block.timestamp <= ds.lastExchangeRateUpdate + 1 days, "NFTFacet: price quote outdated");
-        
+        // Verifica se a cotação está atualizada e emite evento se desatualizada
         _checkQuoteOutdated(ds.lastExchangeRateUpdate);
         
         // Verifica o valor enviado
@@ -203,6 +206,8 @@ contract NFTFacet is
         return super.tokenURI(tokenId);
     }
 
+    // Removido override da função _burn para compatibilidade com OpenZeppelin
+
     /**
      * @notice Permite ao usuário devolver o NFT e receber reembolso quando o contrato estiver pausado.
      * @dev Queima o NFT e devolve exatamente `exchangeRate` em ETH.
@@ -242,5 +247,14 @@ contract NFTFacet is
         onlyRole(ScrumPokerStorage.ADMIN_ROLE) 
     {
         emit NFTBadgeMinted(_participant, _tokenId, _sprintNumber);
+    }
+    
+    /**
+     * @dev Retorna o número total de tokens NFT criados.
+     * @return Número total de tokens.
+     */
+    function totalSupply() external view returns (uint256) {
+        ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
+        return ds.nextTokenId > 0 ? ds.nextTokenId - 1 : 0;
     }
 }

@@ -66,7 +66,7 @@ contract DiamondDeployer {
         // Inicializa as facetas diretamente, uma por uma, para contornar conflitos de versionamento de storage
         // Inicializa AdminFacet
         AdminFacet adminFacet = AdminFacet(diamondAddress);
-        try adminFacet.initialize(1 ether, 30 days, _owner) {
+        try adminFacet.initialize(1000000, 30 days, _owner) {
             // Sucesso na inicialização
         } catch {
             // Ignora erros de inicialização, já que algumas facetas podem já estar inicializadas

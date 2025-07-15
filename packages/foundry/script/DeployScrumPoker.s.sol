@@ -115,7 +115,7 @@ contract DeployScrumPokerSimple is Script {
         if (chainId == 137) return "polygon";
         if (chainId == 80001) return "mumbai";
         if (chainId == 31337) return "anvil";
-        if (chainId == 2025) return "devnet";
+        if (chainId == 1337) return "devnet";
         return vm.toString(chainId);
     }
 }

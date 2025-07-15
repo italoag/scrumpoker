@@ -97,6 +97,9 @@ contract AdminFacet is Initializable, ReentrancyGuardUpgradeable {
     ) external initializer {
         ValidationUtils.requireNotZeroAddress(_admin, "Admin address cannot be zero");
         
+        // Initialize storage first
+        ScrumPokerStorage.initializeStorage();
+        
         ScrumPokerStorage.DiamondStorage storage ds = ScrumPokerStorage.diamondStorage();
         
         ds.exchangeRate = _initialExchangeRate;

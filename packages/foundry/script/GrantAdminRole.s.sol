@@ -6,15 +6,21 @@ import "../contracts/diamond/facets/AdminFacet.sol";
 
 contract GrantAdminRole is Script {
     function run() external {
-        uint256 deployerPrivateKey = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
+        // Recupera a chave privada do ambiente ou usa uma padrão para testes
+        uint256 deployerPrivateKey = vm.envOr("PRIVATE_KEY", uint256(0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80));
+        
+        // Endereço do deployer derivado da chave privada
+        address deployerAddress = vm.addr(deployerPrivateKey);
+        console.log("Using deployer address:", deployerAddress);
+        
         vm.startBroadcast(deployerPrivateKey);
 
-        // Endereço do AdminFacet deployado
-        address adminFacetAddress = 0xe95C81b36A0f77a4940368931D2612bDF6D4ed20;
+        // Endereço do AdminFacet deployado (deployment atualizado)
+        address adminFacetAddress = 0xf7Cd8fa9b94DB2Aa972023b379c7f72c65E4De9D;
         AdminFacet adminFacet = AdminFacet(adminFacetAddress);
 
         // Endereço da wallet que precisa de permissão ADMIN
-        address walletToGrant = 0x27e1Beb25112BEb6631Ac1FA5F83286DA6a508A1;
+        address walletToGrant = 0x6695EBF9b8057742faaAb700023a8ba7Cb1470a0;
 
         // Role ADMIN_ROLE
         bytes32 adminRole = keccak256("ADMIN_ROLE");

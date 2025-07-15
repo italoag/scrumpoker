@@ -2,17 +2,25 @@ import { ponder } from "ponder:registry";
 import { 
   ceremony, 
   ceremonyParticipant, 
-  ceremonyStats 
+  ceremonyStats,
+  ceremonyApprovalRequest
 } from "ponder:schema";
 
 // Evento: CeremonyStarted - Criação real de cerimônia
 ponder.on("CeremonyFacet:CeremonyStarted", async ({ event, context }) => {
-  const ceremonyCode = event.args.ceremonyCode;
-  const scrumMaster = event.args.scrumMaster;
-  const sprintNumber = event.args.sprintNumber;
-  const startTime = event.args.startTime;
-  
-  console.log(`Processing CeremonyStarted: ${ceremonyCode}`);
+  try {
+    const ceremonyCode = event.args.ceremonyCode;
+    const scrumMaster = event.args.scrumMaster;
+    const sprintNumber = event.args.sprintNumber;
+    const startTime = event.args.startTime;
+    
+    console.log(`Processing CeremonyStarted: ${ceremonyCode}`, {
+      scrumMaster,
+      sprintNumber: sprintNumber.toString(),
+      startTime: startTime.toString(),
+      blockNumber: event.block.number.toString(),
+      timestamp: event.block.timestamp.toString()
+    });
   
   // Verificar se a cerimônia já existe
   const existingCeremony = await context.db.find(ceremony, { id: ceremonyCode });
@@ -58,52 +66,95 @@ ponder.on("CeremonyFacet:CeremonyStarted", async ({ event, context }) => {
     
     console.log(`Updated ceremony: ${ceremonyCode}`);
   }
+  } catch (error) {
+    console.error(`Error processing CeremonyStarted for ${event.args.ceremonyCode}:`, error);
+    throw error; // Re-throw para que o Ponder saiba que houve erro
+  }
 });
 
 // Evento: CeremonyEntryRequested - Gerenciamento de participantes
 ponder.on("CeremonyFacet:CeremonyEntryRequested", async ({ event, context }) => {
-  const ceremonyCode = event.args.ceremonyCode;
-  const participant = event.args.participant;
+  try {
+    const ceremonyCode = event.args.ceremonyCode;
+    const participant = event.args.participant;
+    
+    console.log(`Processing CeremonyEntryRequested: ${participant} for ${ceremonyCode}`);
   
-  console.log(`Processing CeremonyEntryRequested: ${participant} for ${ceremonyCode}`);
-  
-  // Adicionar participante
-  await context.db.insert(ceremonyParticipant).values({
+  // Criar solicitação de aprovação
+  await context.db.insert(ceremonyApprovalRequest).values({
     id: `${ceremonyCode}-${participant}`,
     ceremonyCode: ceremonyCode,
     participant: participant,
-    joinedAt: Number(event.block.timestamp),
+    status: "pending",
+    requestedAt: Number(event.block.timestamp),
     blockNumber: event.block.number,
     transactionHash: event.transaction.hash,
   });
 
-  // Atualizar estatísticas de participantes
-  const stats = await context.db.find(ceremonyStats, { id: "global" });
-  if (stats) {
-    await context.db.update(ceremonyStats, { id: "global" }).set({
-      totalParticipants: stats.totalParticipants + 1n,
-      lastUpdated: Number(event.block.timestamp),
-    });
+  console.log(`Created approval request for ${participant} in ceremony ${ceremonyCode}`);
+  } catch (error) {
+    console.error(`Error processing CeremonyEntryRequested:`, error);
+    throw error;
   }
 });
 
 // Evento: EntryApproved
 ponder.on("CeremonyFacet:EntryApproved", async ({ event, context }) => {
-  const ceremonyCode = event.args.ceremonyCode;
-  const participant = event.args.participant;
-  
-  console.log(`Entry approved for ${participant} in ceremony ${ceremonyCode}`);
+  try {
+    const ceremonyCode = event.args.ceremonyCode;
+    const participant = event.args.participant;
+    
+    console.log(`Entry approved for ${participant} in ceremony ${ceremonyCode}`);
+    
+    // Atualizar solicitação de aprovação
+    await context.db.update(ceremonyApprovalRequest, { 
+      id: `${ceremonyCode}-${participant}` 
+    }).set({
+      status: "approved",
+      processedAt: Number(event.block.timestamp),
+      processedBy: event.transaction.from, // Quem aprovou
+    });
+
+    // Adicionar como participante efetivo
+    await context.db.insert(ceremonyParticipant).values({
+      id: `${ceremonyCode}-${participant}`,
+      ceremonyCode: ceremonyCode,
+      participant: participant,
+      joinedAt: Number(event.block.timestamp),
+      blockNumber: event.block.number,
+      transactionHash: event.transaction.hash,
+    });
+
+    // Atualizar estatísticas de participantes
+    const stats = await context.db.find(ceremonyStats, { id: "global" });
+    if (stats) {
+      await context.db.update(ceremonyStats, { id: "global" }).set({
+        totalParticipants: stats.totalParticipants + 1n,
+        lastUpdated: Number(event.block.timestamp),
+      });
+    }
+
+    console.log(`Approved and added ${participant} to ceremony ${ceremonyCode}`);
+  } catch (error) {
+    console.error(`Error processing EntryApproved:`, error);
+    throw error;
+  }
 });
 
 // Evento: CeremonyConcluded
 ponder.on("CeremonyFacet:CeremonyConcluded", async ({ event, context }) => {
-  const ceremonyCode = event.args.ceremonyCode;
-  
-  console.log(`Processing CeremonyConcluded: ${ceremonyCode}`);
-  
-  // Atualizar status da cerimônia
-  await context.db.update(ceremony, { id: ceremonyCode }).set({
-    status: "concluded",
-    concludedAt: Number(event.block.timestamp),
-  });
+  try {
+    const ceremonyCode = event.args.ceremonyCode;
+    
+    console.log(`Processing CeremonyConcluded: ${ceremonyCode}`);
+    
+    // Atualizar status da cerimônia
+    await context.db.update(ceremony, { id: ceremonyCode }).set({
+      status: "concluded",
+      concludedAt: Number(event.block.timestamp),
+    });
+  } catch (error) {
+    console.error(`Error processing CeremonyConcluded:`, error);
+    throw error;
+  }
 });

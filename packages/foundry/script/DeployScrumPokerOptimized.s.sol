@@ -164,34 +164,69 @@ contract DeployScrumPokerOptimized is DeployHelper {
     }
     
     /**
-     * @dev Initialize the Diamond with proper error handling
+     * @dev Initialize the Diamond with proper error handling using AdminFacet
      */
     function initializeDiamond() internal {
         console.log("Step 3: Initializing Diamond...");
         uint256 stepStartGas = gasleft();
         
-        // Prepare initialization data
-        bytes memory initData = abi.encodeWithSelector(
-            DiamondInit.init.selector,
-            "ScrumPoker NFT",
-            "SCRUM"
-        );
+        // Initialize AdminFacet first with proper exchange rate and vesting period
+        uint256 initialExchangeRate = 1000000; // 1 USD = 0.001 ETH (1000000 wei)
+        uint256 vestingPeriod = 30 days;
         
-        // Call the diamondCut function on the diamond to initialize it
-        try OwnableDiamond(diamondAddress).diamondCut(
-            new Diamond.Facet[](0),
-            diamondInitAddress, 
-            initData
+        try AdminFacet(diamondAddress).initialize(
+            initialExchangeRate,
+            vestingPeriod,
+            deployer  // Pass deployer as admin
         ) {
-            console.log("  Diamond initialized successfully");
+            console.log("  AdminFacet initialized successfully");
+            console.log("  Exchange rate set to:", initialExchangeRate);
+            console.log("  Vesting period set to:", vestingPeriod);
+            console.log("  Admin role granted to:", deployer);
         } catch Error(string memory reason) {
-            console.log("  Initialization failed with reason:", reason);
-            revert(string.concat("Diamond initialization failed: ", reason));
+            console.log("  AdminFacet initialization failed with reason:", reason);
+            revert(string.concat("AdminFacet initialization failed: ", reason));
         } catch {
-            console.log("  Initialization failed with unknown error");
-            revert("Diamond initialization failed with unknown error");
+            console.log("  AdminFacet initialization failed with unknown error");
+            revert("AdminFacet initialization failed with unknown error");
         }
         
+        // Initialize NFTFacet
+        try NFTFacet(diamondAddress).initializeNFT(
+            "ScrumPoker NFT",
+            "SCRUM"
+        ) {
+            console.log("  NFTFacet initialized successfully");
+        } catch Error(string memory reason) {
+            console.log("  NFTFacet initialization failed with reason:", reason);
+            revert(string.concat("NFTFacet initialization failed: ", reason));
+        } catch {
+            console.log("  NFTFacet initialization failed with unknown error");
+            revert("NFTFacet initialization failed with unknown error");
+        }
+        
+        // Initialize CeremonyFacet
+        try CeremonyFacet(diamondAddress).initializeCeremony() {
+            console.log("  CeremonyFacet initialized successfully");
+        } catch Error(string memory reason) {
+            console.log("  CeremonyFacet initialization failed with reason:", reason);
+            revert(string.concat("CeremonyFacet initialization failed: ", reason));
+        } catch {
+            console.log("  CeremonyFacet initialization failed with unknown error");
+            revert("CeremonyFacet initialization failed with unknown error");
+        }
+        
+        // Initialize VotingFacet
+        try VotingFacet(diamondAddress).initializeVoting() {
+            console.log("  VotingFacet initialized successfully");
+        } catch Error(string memory reason) {
+            console.log("  VotingFacet initialization failed with reason:", reason);
+            revert(string.concat("VotingFacet initialization failed: ", reason));
+        } catch {
+            console.log("  VotingFacet initialization failed with unknown error");
+            revert("VotingFacet initialization failed with unknown error");
+        }
+
         uint256 stepGasUsed = stepStartGas - gasleft();
         console.log("  Initialization gas used:", stepGasUsed);
         console.log("");
@@ -207,6 +242,16 @@ contract DeployScrumPokerOptimized is DeployHelper {
         address owner = OwnableDiamond(diamondAddress).owner();
         require(owner == deployer, "Diamond owner verification failed");
         console.log("  Diamond owner verified:", owner);
+        
+        // Verify AdminFacet initialization by checking exchange rate
+        uint256 exchangeRate = AdminFacet(diamondAddress).getExchangeRate();
+        require(exchangeRate == 1000000, "Exchange rate verification failed");
+        console.log("  Exchange rate verified:", exchangeRate);
+        
+        // Verify vesting period
+        uint256 vestingPeriod = AdminFacet(diamondAddress).getVestingPeriod();
+        require(vestingPeriod == 30 days, "Vesting period verification failed");
+        console.log("  Vesting period verified:", vestingPeriod);
         
         // Verify facets are properly added (check a function from each facet)
         // This is a basic verification - in production you might want more comprehensive checks

@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   1337: {
     AdminFacet: {
-      address: "0xe95c81b36a0f77a4940368931d2612bdf6d4ed20",
+      address: "0x27c4aa51099adc13b2b908a924dd306a6f063f0e",
       abi: [
         {
           type: "function",
@@ -522,11 +522,11 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1752502407.json",
+      deploymentFile: "run-1752614359.json",
       deploymentScript: "Deploy.s.sol",
     },
     NFTFacet: {
-      address: "0x50d0ecf8e1532c275e3e35deedf36fa42ce06026",
+      address: "0x9b35718e9ef5eb46a4b75e3fe35efd57b82d68f3",
       abi: [
         {
           type: "function",
@@ -913,6 +913,19 @@ const deployedContracts = {
               name: "",
               type: "string",
               internalType: "string",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "totalSupply",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
             },
           ],
           stateMutability: "view",
@@ -1347,11 +1360,11 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1752502407.json",
+      deploymentFile: "run-1752614359.json",
       deploymentScript: "Deploy.s.sol",
     },
     CeremonyFacet: {
-      address: "0xdeb366053b16457d1fe2a6b8559ff713c1bbeb69",
+      address: "0x35f24e0397d00ca3f356897a09be2904a04f5f36",
       abi: [
         {
           type: "function",
@@ -1755,11 +1768,11 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1752502407.json",
+      deploymentFile: "run-1752614359.json",
       deploymentScript: "Deploy.s.sol",
     },
     VotingFacet: {
-      address: "0x960acb1bb927842ee6718ff8d3550cce942228c2",
+      address: "0xb627a590644459ebcb3cf798126296d43f5f40f8",
       abi: [
         {
           type: "function",
@@ -2502,11 +2515,11 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1752502407.json",
+      deploymentFile: "run-1752614359.json",
       deploymentScript: "Deploy.s.sol",
     },
     DiamondInit: {
-      address: "0xc8b596cc072302a84d29500ff4d956a900f29e01",
+      address: "0xad9463f0ce25406ac8b46e2019d37cd4c525751a",
       abi: [
         {
           type: "function",
@@ -2522,17 +2535,22 @@ const deployedContracts = {
               type: "string",
               internalType: "string",
             },
+            {
+              name: "_admin",
+              type: "address",
+              internalType: "address",
+            },
           ],
           outputs: [],
           stateMutability: "nonpayable",
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1752502407.json",
+      deploymentFile: "run-1752614359.json",
       deploymentScript: "Deploy.s.sol",
     },
     ScrumPokerDiamond: {
-      address: "0x20cf926473d58ac98f5e829fde93f149c4a16046",
+      address: "0xab41dbb801bea20912a1b1b47d0f88d810d5b93b",
       abi: [
         {
           type: "constructor",
@@ -3093,169 +3111,6 @@ const deployedContracts = {
           name: "WithdrawalFailed",
           inputs: [],
         },
-      ],
-      inheritedFunctions: {},
-      deploymentFile: "run-1752502407.json",
-      deploymentScript: "Deploy.s.sol",
-    },
-  },
-  2025: {
-    ScrumPokerDeployer: {
-      address: "0x67d269191c92caf3cd7723f116c85e6e9bf55933",
-      abi: [
-        {
-          type: "constructor",
-          inputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "deployAll",
-          inputs: [
-            {
-              name: "_owner",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "deployAndAddAdminFacet",
-          inputs: [
-            {
-              name: "_diamond",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "deployAndAddCeremonyFacet",
-          inputs: [
-            {
-              name: "_diamond",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "deployAndAddNFTFacet",
-          inputs: [
-            {
-              name: "_diamond",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "deployAndAddVotingFacet",
-          inputs: [
-            {
-              name: "_diamond",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "diamondDeployer",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "contract DiamondDeployer",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "facetDeployer",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "contract FacetDeployer",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "event",
-          name: "DeploymentCompleted",
-          inputs: [
-            {
-              name: "diamond",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "facets",
-              type: "address[]",
-              indexed: false,
-              internalType: "address[]",
-            },
-          ],
-          anonymous: false,
-        },
-      ],
-      inheritedFunctions: {},
-      deploymentFile: "run-1746772376.json",
-      deploymentScript: "DeployScrumPoker.s.sol",
-    },
-    AdminFacet: {
-      address: "0x59b670e9fa9d0a427751af201d676719a970857b",
-      abi: [
         {
           type: "function",
           name: "getExchangeRate",
@@ -3589,19 +3444,6 @@ const deployedContracts = {
         },
         {
           type: "event",
-          name: "Initialized",
-          inputs: [
-            {
-              name: "version",
-              type: "uint64",
-              indexed: false,
-              internalType: "uint64",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
           name: "PriceOracleUpdated",
           inputs: [
             {
@@ -3713,11 +3555,6 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "InvalidInitialization",
-          inputs: [],
-        },
-        {
-          type: "error",
           name: "InvalidOracleData",
           inputs: [],
         },
@@ -3733,17 +3570,7 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "NotInitializing",
-          inputs: [],
-        },
-        {
-          type: "error",
           name: "OracleFailure",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "ReentrancyGuardReentrantCall",
           inputs: [],
         },
         {
@@ -3767,14 +3594,6 @@ const deployedContracts = {
           name: "ZeroAddress",
           inputs: [],
         },
-      ],
-      inheritedFunctions: {},
-      deploymentFile: "run-1746772005.json",
-      deploymentScript: "DeployDirect.s.sol",
-    },
-    NFTFacet: {
-      address: "0x4ed7c70f96b99c776995fb64377f0d4ab3b0e1c1",
-      abi: [
         {
           type: "function",
           name: "approve",
@@ -4115,25 +3934,6 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "supportsInterface",
-          inputs: [
-            {
-              name: "interfaceId",
-              type: "bytes4",
-              internalType: "bytes4",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
           name: "symbol",
           inputs: [],
           outputs: [
@@ -4160,6 +3960,19 @@ const deployedContracts = {
               name: "",
               type: "string",
               internalType: "string",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "totalSupply",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
             },
           ],
           stateMutability: "view",
@@ -4288,38 +4101,6 @@ const deployedContracts = {
         },
         {
           type: "event",
-          name: "FundsWithdrawn",
-          inputs: [
-            {
-              name: "owner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "amount",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "Initialized",
-          inputs: [
-            {
-              name: "version",
-              type: "uint64",
-              indexed: false,
-              internalType: "uint64",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
           name: "MetadataUpdate",
           inputs: [
             {
@@ -4399,19 +4180,6 @@ const deployedContracts = {
             },
             {
               name: "amountRefunded",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "QuoteOutdated",
-          inputs: [
-            {
-              name: "lastUpdated",
               type: "uint256",
               indexed: false,
               internalType: "uint256",
@@ -4554,11 +4322,6 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "InvalidInitialization",
-          inputs: [],
-        },
-        {
-          type: "error",
           name: "NFTAlreadyPurchased",
           inputs: [],
         },
@@ -4569,37 +4332,9 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "NotAuthorized",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "NotInitializing",
-          inputs: [],
-        },
-        {
-          type: "error",
           name: "NotPaused",
           inputs: [],
         },
-        {
-          type: "error",
-          name: "ReentrancyGuardReentrantCall",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "WithdrawalFailed",
-          inputs: [],
-        },
-      ],
-      inheritedFunctions: {},
-      deploymentFile: "run-1746772005.json",
-      deploymentScript: "DeployDirect.s.sol",
-    },
-    CeremonyFacet: {
-      address: "0x322813fd9a801c5507c9de605d63cea4f2ce6c44",
-      abi: [
         {
           type: "function",
           name: "approveEntry",
@@ -4881,44 +4616,6 @@ const deployedContracts = {
           anonymous: false,
         },
         {
-          type: "event",
-          name: "Initialized",
-          inputs: [
-            {
-              name: "version",
-              type: "uint64",
-              indexed: false,
-              internalType: "uint64",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "RoleGranted",
-          inputs: [
-            {
-              name: "role",
-              type: "bytes32",
-              indexed: true,
-              internalType: "bytes32",
-            },
-            {
-              name: "account",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "sender",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
-        },
-        {
           type: "error",
           name: "CeremonyAlreadyExists",
           inputs: [
@@ -4951,32 +4648,12 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "InvalidInitialization",
-          inputs: [],
-        },
-        {
-          type: "error",
           name: "NFTRequired",
           inputs: [],
         },
         {
           type: "error",
-          name: "NotAuthorized",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "NotInitializing",
-          inputs: [],
-        },
-        {
-          type: "error",
           name: "ParticipantAlreadyApproved",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "ReentrancyGuardReentrantCall",
           inputs: [],
         },
         {
@@ -5000,14 +4677,6 @@ const deployedContracts = {
             },
           ],
         },
-      ],
-      inheritedFunctions: {},
-      deploymentFile: "run-1746772005.json",
-      deploymentScript: "DeployDirect.s.sol",
-    },
-    VotingFacet: {
-      address: "0xa85233c63b9ee964add6f2cffe00fd84eb32338f",
-      abi: [
         {
           type: "function",
           name: "MAX_VOTE_VALUE",
@@ -5526,19 +5195,6 @@ const deployedContracts = {
         },
         {
           type: "event",
-          name: "Initialized",
-          inputs: [
-            {
-              name: "version",
-              type: "uint64",
-              indexed: false,
-              internalType: "uint64",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
           name: "NFTBadgeUpdated",
           inputs: [
             {
@@ -5643,27 +5299,12 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "CeremonyNotActive",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "CeremonyNotFound",
-          inputs: [],
-        },
-        {
-          type: "error",
           name: "DuplicateFunctionalitySession",
           inputs: [],
         },
         {
           type: "error",
           name: "InvalidCommit",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "InvalidInitialization",
           inputs: [],
         },
         {
@@ -5693,22 +5334,7 @@ const deployedContracts = {
         },
         {
           type: "error",
-          name: "NotAuthorized",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "NotInitializing",
-          inputs: [],
-        },
-        {
-          type: "error",
           name: "ParticipantNotApproved",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "ReentrancyGuardReentrantCall",
           inputs: [],
         },
         {
@@ -5726,603 +5352,15 @@ const deployedContracts = {
           name: "SessionNotFound",
           inputs: [],
         },
-        {
-          type: "error",
-          name: "StorageNotInitialized",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "StorageVersionMismatch",
-          inputs: [
-            {
-              name: "expected",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "actual",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-        },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1746772005.json",
-      deploymentScript: "DeployDirect.s.sol",
-    },
-    ScrumPokerDiamond: {
-      address: "0x4a679253410272dd5232b3ff7cf5dbb88f295319",
-      abi: [
-        {
-          type: "constructor",
-          inputs: [
-            {
-              name: "_initialOwner",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "fallback",
-          stateMutability: "payable",
-        },
-        {
-          type: "receive",
-          stateMutability: "payable",
-        },
-        {
-          type: "function",
-          name: "DIAMOND_STORAGE_SLOT",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "bytes32",
-              internalType: "bytes32",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "diamondCut",
-          inputs: [
-            {
-              name: "facets_",
-              type: "tuple[]",
-              internalType: "struct Diamond.Facet[]",
-              components: [
-                {
-                  name: "facetAddress",
-                  type: "address",
-                  internalType: "address",
-                },
-                {
-                  name: "action",
-                  type: "uint8",
-                  internalType: "enum Diamond.FacetAction",
-                },
-                {
-                  name: "functionSelectors",
-                  type: "bytes4[]",
-                  internalType: "bytes4[]",
-                },
-              ],
-            },
-            {
-              name: "init_",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "initData_",
-              type: "bytes",
-              internalType: "bytes",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "diamondCut",
-          inputs: [
-            {
-              name: "facets_",
-              type: "tuple[]",
-              internalType: "struct Diamond.Facet[]",
-              components: [
-                {
-                  name: "facetAddress",
-                  type: "address",
-                  internalType: "address",
-                },
-                {
-                  name: "action",
-                  type: "uint8",
-                  internalType: "enum Diamond.FacetAction",
-                },
-                {
-                  name: "functionSelectors",
-                  type: "bytes4[]",
-                  internalType: "bytes4[]",
-                },
-              ],
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "facetAddress",
-          inputs: [
-            {
-              name: "selector_",
-              type: "bytes4",
-              internalType: "bytes4",
-            },
-          ],
-          outputs: [
-            {
-              name: "facet_",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "facetAddresses",
-          inputs: [],
-          outputs: [
-            {
-              name: "facets_",
-              type: "address[]",
-              internalType: "address[]",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "facetFunctionSelectors",
-          inputs: [
-            {
-              name: "facet_",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [
-            {
-              name: "selectors_",
-              type: "bytes4[]",
-              internalType: "bytes4[]",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "facets",
-          inputs: [],
-          outputs: [
-            {
-              name: "facets_",
-              type: "tuple[]",
-              internalType: "struct ADiamondStorage.FacetInfo[]",
-              components: [
-                {
-                  name: "facetAddress",
-                  type: "address",
-                  internalType: "address",
-                },
-                {
-                  name: "functionSelectors",
-                  type: "bytes4[]",
-                  internalType: "bytes4[]",
-                },
-              ],
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "maxContribution",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "owner",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "renounceOwnership",
-          inputs: [],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "setMaxContribution",
-          inputs: [
-            {
-              name: "_newLimit",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "supportsInterface",
-          inputs: [
-            {
-              name: "interfaceId_",
-              type: "bytes4",
-              internalType: "bytes4",
-            },
-          ],
-          outputs: [
-            {
-              name: "",
-              type: "bool",
-              internalType: "bool",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "transferOwnership",
-          inputs: [
-            {
-              name: "newOwner",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "function",
-          name: "withdrawEther",
-          inputs: [
-            {
-              name: "_to",
-              type: "address",
-              internalType: "address payable",
-            },
-            {
-              name: "_amount",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          outputs: [],
-          stateMutability: "nonpayable",
-        },
-        {
-          type: "event",
-          name: "DiamondCut",
-          inputs: [
-            {
-              name: "facets",
-              type: "tuple[]",
-              indexed: false,
-              internalType: "struct Diamond.Facet[]",
-              components: [
-                {
-                  name: "facetAddress",
-                  type: "address",
-                  internalType: "address",
-                },
-                {
-                  name: "action",
-                  type: "uint8",
-                  internalType: "enum Diamond.FacetAction",
-                },
-                {
-                  name: "functionSelectors",
-                  type: "bytes4[]",
-                  internalType: "bytes4[]",
-                },
-              ],
-            },
-            {
-              name: "initFacet",
-              type: "address",
-              indexed: false,
-              internalType: "address",
-            },
-            {
-              name: "initData",
-              type: "bytes",
-              indexed: false,
-              internalType: "bytes",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "EtherReceived",
-          inputs: [
-            {
-              name: "sender",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "amount",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "EtherWithdrawn",
-          inputs: [
-            {
-              name: "to",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "amount",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "Initialized",
-          inputs: [
-            {
-              name: "version",
-              type: "uint64",
-              indexed: false,
-              internalType: "uint64",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "MaxContributionUpdated",
-          inputs: [
-            {
-              name: "oldLimit",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "newLimit",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "OwnershipTransferred",
-          inputs: [
-            {
-              name: "previousOwner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "newOwner",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "error",
-          name: "ContributionTooLarge",
-          inputs: [
-            {
-              name: "sent",
-              type: "uint256",
-              internalType: "uint256",
-            },
-            {
-              name: "maxAllowed",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "FacetIsZeroAddress",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "InitializationReverted",
-          inputs: [
-            {
-              name: "initFacet",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "initData",
-              type: "bytes",
-              internalType: "bytes",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "InvalidInitialization",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "NoFacetForSelector",
-          inputs: [
-            {
-              name: "selector",
-              type: "bytes4",
-              internalType: "bytes4",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "NoSelectorsProvided",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "NotInitializing",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "OwnableInvalidOwner",
-          inputs: [
-            {
-              name: "owner",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "OwnableUnauthorizedAccount",
-          inputs: [
-            {
-              name: "account",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "ReentrancyGuardError",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "ReentrancyGuardReentrantCall",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "SelectorAlreadyAdded",
-          inputs: [
-            {
-              name: "faucet",
-              type: "address",
-              internalType: "address",
-            },
-            {
-              name: "selector",
-              type: "bytes4",
-              internalType: "bytes4",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "SelectorFromAnotherFacet",
-          inputs: [
-            {
-              name: "selector",
-              type: "bytes4",
-              internalType: "bytes4",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "SelectorIsAlreadyInThisFaucet",
-          inputs: [
-            {
-              name: "selector",
-              type: "bytes4",
-              internalType: "bytes4",
-            },
-            {
-              name: "facet",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "SelectorNotRegistered",
-          inputs: [
-            {
-              name: "selector",
-              type: "bytes4",
-              internalType: "bytes4",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "WithdrawalFailed",
-          inputs: [],
-        },
-      ],
-      inheritedFunctions: {},
-      deploymentFile: "run-1746772005.json",
-      deploymentScript: "DeployDirect.s.sol",
+      deploymentFile: "run-1752614359.json",
+      deploymentScript: "Deploy.s.sol",
     },
   },
   31337: {
     AdminFacet: {
-      address: "0xf7cd8fa9b94db2aa972023b379c7f72c65e4de9d",
+      address: "0x9ba5fa0ed37ed83a4645ac82aba74ae69e8fa768",
       abi: [
         {
           type: "function",
@@ -6837,11 +5875,11 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1752523282.json",
+      deploymentFile: "run-1752616976.json",
       deploymentScript: "Deploy.s.sol",
     },
     NFTFacet: {
-      address: "0x12975173b87f7595ee45dffb2ab812ece596bf84",
+      address: "0x5db476000e3be14ca0a358c48bac5ccf3c221931",
       abi: [
         {
           type: "function",
@@ -7228,6 +6266,19 @@ const deployedContracts = {
               name: "",
               type: "string",
               internalType: "string",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "totalSupply",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
             },
           ],
           stateMutability: "view",
@@ -7662,11 +6713,11 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1752523282.json",
+      deploymentFile: "run-1752616976.json",
       deploymentScript: "Deploy.s.sol",
     },
     CeremonyFacet: {
-      address: "0x82dc47734901ee7d4f4232f398752cb9dd5daccc",
+      address: "0x2002e561a20bdac3aa927ba3c3c7cfa8cfc1616d",
       abi: [
         {
           type: "function",
@@ -8070,11 +7121,11 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1752523282.json",
+      deploymentFile: "run-1752616976.json",
       deploymentScript: "Deploy.s.sol",
     },
     VotingFacet: {
-      address: "0x196dbcbb54b8ec4958c959d8949ebfe87ac2aaaf",
+      address: "0xc24d5d69e8ea5c986b814b78f75844f1ae7bd4de",
       abi: [
         {
           type: "function",
@@ -8817,11 +7868,11 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1752523282.json",
+      deploymentFile: "run-1752616976.json",
       deploymentScript: "Deploy.s.sol",
     },
     DiamondInit: {
-      address: "0x82c6d3ed4cd33d8ec1e51d0b5cc1d822eaa0c3dc",
+      address: "0xd70d04be10b31747d93ab4c1405a3f96b3f18f5c",
       abi: [
         {
           type: "function",
@@ -8837,17 +7888,22 @@ const deployedContracts = {
               type: "string",
               internalType: "string",
             },
+            {
+              name: "_admin",
+              type: "address",
+              internalType: "address",
+            },
           ],
           outputs: [],
           stateMutability: "nonpayable",
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1752523282.json",
+      deploymentFile: "run-1752616976.json",
       deploymentScript: "Deploy.s.sol",
     },
     ScrumPokerDiamond: {
-      address: "0x05b4cb126885fb10464fdd12666feb25e2563b76",
+      address: "0x1121cbffcec885f26754d891f0f956045d1e3988",
       abi: [
         {
           type: "constructor",
@@ -9408,13 +8464,2254 @@ const deployedContracts = {
           name: "WithdrawalFailed",
           inputs: [],
         },
+        {
+          type: "function",
+          name: "getExchangeRate",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getVestingPeriod",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "grantRole",
+          inputs: [
+            {
+              name: "role",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+            {
+              name: "account",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "hasRole",
+          inputs: [
+            {
+              name: "role",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+            {
+              name: "account",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "initialize",
+          inputs: [
+            {
+              name: "_initialExchangeRate",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "_vestingPeriod",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "_admin",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "isPaused",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "pause",
+          inputs: [],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "revokeRole",
+          inputs: [
+            {
+              name: "role",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+            {
+              name: "account",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "setPriceOracle",
+          inputs: [
+            {
+              name: "_priceOracle",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "unpause",
+          inputs: [],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "updateExchangeRate",
+          inputs: [
+            {
+              name: "newRate",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "updateExchangeRateFromOracle",
+          inputs: [],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "updateVestingPeriod",
+          inputs: [
+            {
+              name: "_newVestingPeriod",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "withdrawERC20",
+          inputs: [
+            {
+              name: "_token",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "_to",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "_amount",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "withdrawFunds",
+          inputs: [
+            {
+              name: "_to",
+              type: "address",
+              internalType: "address payable",
+            },
+            {
+              name: "_amount",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "ContractPaused",
+          inputs: [
+            {
+              name: "operator",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "ContractUnpaused",
+          inputs: [
+            {
+              name: "operator",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "ERC20TokensWithdrawn",
+          inputs: [
+            {
+              name: "token",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "to",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "amount",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "ExchangeRateUpdated",
+          inputs: [
+            {
+              name: "newRate",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "timestamp",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "ExchangeRateUpdatedFromOracle",
+          inputs: [
+            {
+              name: "newRate",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "timestamp",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "FundsWithdrawn",
+          inputs: [
+            {
+              name: "to",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "amount",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "PriceOracleUpdated",
+          inputs: [
+            {
+              name: "newOracle",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "QuoteOutdated",
+          inputs: [
+            {
+              name: "lastUpdated",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "RoleGranted",
+          inputs: [
+            {
+              name: "role",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+            {
+              name: "account",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "sender",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "RoleRevoked",
+          inputs: [
+            {
+              name: "role",
+              type: "bytes32",
+              indexed: true,
+              internalType: "bytes32",
+            },
+            {
+              name: "account",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "sender",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "VestingPeriodUpdated",
+          inputs: [
+            {
+              name: "oldPeriod",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "newPeriod",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "error",
+          name: "InsufficientFunds",
+          inputs: [
+            {
+              name: "requested",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "available",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "InvalidOracleData",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidVestingPeriod",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NotAuthorized",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "OracleFailure",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "SafeERC20FailedOperation",
+          inputs: [
+            {
+              name: "token",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "TransferFailed",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "ZeroAddress",
+          inputs: [],
+        },
+        {
+          type: "function",
+          name: "approve",
+          inputs: [
+            {
+              name: "to",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "tokenId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "balanceOf",
+          inputs: [
+            {
+              name: "owner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getApproved",
+          inputs: [
+            {
+              name: "tokenId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getBadgeData",
+          inputs: [
+            {
+              name: "tokenId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "userName",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "userAddress",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "ceremoniesParticipated",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "votesCast",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "sprintResults",
+              type: "tuple[]",
+              internalType: "struct ScrumPokerStorage.SprintResult[]",
+              components: [
+                {
+                  name: "sprintNumber",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "startTime",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "endTime",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "totalPoints",
+                  type: "uint256",
+                  internalType: "uint256",
+                },
+                {
+                  name: "functionalityCodes",
+                  type: "string[]",
+                  internalType: "string[]",
+                },
+                {
+                  name: "functionalityVotes",
+                  type: "uint256[]",
+                  internalType: "uint256[]",
+                },
+              ],
+            },
+            {
+              name: "externalURI",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getUserToken",
+          inputs: [
+            {
+              name: "user",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "initializeNFT",
+          inputs: [
+            {
+              name: "_name",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_symbol",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "isApprovedForAll",
+          inputs: [
+            {
+              name: "owner",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "operator",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "isVested",
+          inputs: [
+            {
+              name: "user",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "name",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "ownerOf",
+          inputs: [
+            {
+              name: "tokenId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "purchaseNFT",
+          inputs: [
+            {
+              name: "_userName",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_externalURI",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [],
+          stateMutability: "payable",
+        },
+        {
+          type: "function",
+          name: "refundNFT",
+          inputs: [],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "safeTransferFrom",
+          inputs: [
+            {
+              name: "from",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "to",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "tokenId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "safeTransferFrom",
+          inputs: [
+            {
+              name: "from",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "to",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "tokenId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "data",
+              type: "bytes",
+              internalType: "bytes",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "setApprovalForAll",
+          inputs: [
+            {
+              name: "operator",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "approved",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "symbol",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "tokenURI",
+          inputs: [
+            {
+              name: "tokenId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "totalSupply",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "transferFrom",
+          inputs: [
+            {
+              name: "from",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "to",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "tokenId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "updateBadgeForSprint",
+          inputs: [
+            {
+              name: "_participant",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "_tokenId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "_sprintNumber",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "withdrawFunds",
+          inputs: [],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "Approval",
+          inputs: [
+            {
+              name: "owner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "approved",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "tokenId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "ApprovalForAll",
+          inputs: [
+            {
+              name: "owner",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "operator",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "approved",
+              type: "bool",
+              indexed: false,
+              internalType: "bool",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "BatchMetadataUpdate",
+          inputs: [
+            {
+              name: "_fromTokenId",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "_toTokenId",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "MetadataUpdate",
+          inputs: [
+            {
+              name: "_tokenId",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "NFTBadgeMinted",
+          inputs: [
+            {
+              name: "participant",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "tokenId",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "sprintNumber",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "NFTPurchased",
+          inputs: [
+            {
+              name: "buyer",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "tokenId",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "amountPaid",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "NFTRefunded",
+          inputs: [
+            {
+              name: "buyer",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "tokenId",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "amountRefunded",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "Transfer",
+          inputs: [
+            {
+              name: "from",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "to",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "tokenId",
+              type: "uint256",
+              indexed: true,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "error",
+          name: "ERC721IncorrectOwner",
+          inputs: [
+            {
+              name: "sender",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "tokenId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "owner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "ERC721InsufficientApproval",
+          inputs: [
+            {
+              name: "operator",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "tokenId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "ERC721InvalidApprover",
+          inputs: [
+            {
+              name: "approver",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "ERC721InvalidOperator",
+          inputs: [
+            {
+              name: "operator",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "ERC721InvalidOwner",
+          inputs: [
+            {
+              name: "owner",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "ERC721InvalidReceiver",
+          inputs: [
+            {
+              name: "receiver",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "ERC721InvalidSender",
+          inputs: [
+            {
+              name: "sender",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "ERC721NonexistentToken",
+          inputs: [
+            {
+              name: "tokenId",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "IncorrectPaymentAmount",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NFTAlreadyPurchased",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NoNFT",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NotPaused",
+          inputs: [],
+        },
+        {
+          type: "function",
+          name: "approveEntry",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_participant",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "ceremonyExists",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "concludeCeremony",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "getCeremony",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [
+            {
+              name: "code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "sprintNumber",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "startTime",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "endTime",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "scrumMaster",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "active",
+              type: "bool",
+              internalType: "bool",
+            },
+            {
+              name: "participants",
+              type: "address[]",
+              internalType: "address[]",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "hasRequestedEntry",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_participant",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "initializeCeremony",
+          inputs: [],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "isApproved",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_participant",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "requestCeremonyEntry",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "startCeremony",
+          inputs: [
+            {
+              name: "_sprintNumber",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "CeremonyConcluded",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "endTime",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "sprintNumber",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "CeremonyEntryRequested",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "participant",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "CeremonyStarted",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "sprintNumber",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "startTime",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "scrumMaster",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "EntryApproved",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "participant",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "error",
+          name: "CeremonyAlreadyExists",
+          inputs: [
+            {
+              name: "code",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "CeremonyNotActive",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "CeremonyNotFound",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "EntryAlreadyRequested",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "EntryNotRequested",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NFTRequired",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "ParticipantAlreadyApproved",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "StorageNotInitialized",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "StorageVersionMismatch",
+          inputs: [
+            {
+              name: "expected",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "actual",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "function",
+          name: "MAX_VOTE_VALUE",
+          inputs: [],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "closeFunctionalityVote",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_sessionIdx",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "commitFunctionalityVote",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_sessionIdx",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "_commit",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "commitVote",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_commit",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "getCeremonyResults",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [
+            {
+              name: "participants",
+              type: "address[]",
+              internalType: "address[]",
+            },
+            {
+              name: "totals",
+              type: "uint256[]",
+              internalType: "uint256[]",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getFunctionalityResults",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_sessionIdx",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [
+            {
+              name: "voters",
+              type: "address[]",
+              internalType: "address[]",
+            },
+            {
+              name: "votes_",
+              type: "uint256[]",
+              internalType: "uint256[]",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getFunctionalityVote",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_sessionIdx",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "_participant",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getParticipantTotalPoints",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_participant",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "total",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "getVote",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_participant",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "hasFunctionalityVoted",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_sessionIdx",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "_participant",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "hasVoted",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_participant",
+              type: "address",
+              internalType: "address",
+            },
+          ],
+          outputs: [
+            {
+              name: "",
+              type: "bool",
+              internalType: "bool",
+            },
+          ],
+          stateMutability: "view",
+        },
+        {
+          type: "function",
+          name: "initializeVoting",
+          inputs: [],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "openFunctionalityVote",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_functionality",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "revealFunctionalityVote",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_sessionIdx",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "_voteValue",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "_salt",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "revealVote",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_voteValue",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "_salt",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "updateBadgesRange",
+          inputs: [
+            {
+              name: "_code",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "start",
+              type: "uint256",
+              internalType: "uint256",
+            },
+            {
+              name: "end",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "event",
+          name: "BadgeBatchProcessed",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "startIndex",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "endIndex",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "FunctionalityVoteCast",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "sessionIndex",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "participant",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "voteValue",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "FunctionalityVoteClosed",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "sessionIndex",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "closer",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "FunctionalityVoteCommitted",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "sessionIndex",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "participant",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "FunctionalityVoteOpened",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "functionalityCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "sessionIndex",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "FunctionalityVoteRevealed",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "sessionIndex",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "participant",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "voteValue",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "NFTBadgeUpdated",
+          inputs: [
+            {
+              name: "participant",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "tokenId",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+            {
+              name: "sprintNumber",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "VoteCast",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "participant",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "voteValue",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "VoteCommitted",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "participant",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "VoteRevealed",
+          inputs: [
+            {
+              name: "ceremonyCode",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "participant",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "voteValue",
+              type: "uint256",
+              indexed: false,
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "error",
+          name: "AlreadyCommitted",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "AlreadyVoted",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "DuplicateFunctionalitySession",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidCommit",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidRange",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidReveal",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "InvalidVoteValue",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NFTNotVested",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "NoCommitFound",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "ParticipantNotApproved",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "RevealPhaseNotActive",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "SessionNotActive",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "SessionNotFound",
+          inputs: [],
+        },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1752523282.json",
+      deploymentFile: "run-1752616976.json",
       deploymentScript: "Deploy.s.sol",
     },
     ScrumPokerDeployer: {
-      address: "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+      address: "0x0b306bf915c4d645ff596e518faf3f9669b97016",
       abi: [
         {
           type: "constructor",
@@ -9563,7 +10860,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deploymentFile: "run-1752501624.json",
+      deploymentFile: "run-1752607061.json",
       deploymentScript: "DeployScrumPoker.s.sol",
     },
   },

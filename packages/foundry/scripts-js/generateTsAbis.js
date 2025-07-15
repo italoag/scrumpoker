@@ -84,6 +84,20 @@ function getDeploymentHistory(broadcastPath) {
 }
 
 function getArtifactOfContract(contractName) {
+  // Special handling for ScrumPokerDiamond - use combined ABI
+  if (contractName === "ScrumPokerDiamond") {
+    const combinedAbiPath = join(__dirname, "..", "out/CombinedDiamond.json");
+    if (existsSync(combinedAbiPath)) {
+      try {
+        const combinedAbi = JSON.parse(readFileSync(combinedAbiPath, "utf8"));
+        console.log(`📦 Using combined ABI for ${contractName} with ${combinedAbi.abi.length} items`);
+        return { abi: combinedAbi.abi };
+      } catch (error) {
+        console.warn(`Warning: Could not load combined ABI for ${contractName}:`, error.message);
+      }
+    }
+  }
+  
   const current_path_to_artifacts = join(
     __dirname,
     "..",

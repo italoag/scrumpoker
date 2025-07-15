@@ -58,9 +58,10 @@ contract VotingFacet is Initializable, ReentrancyGuardUpgradeable {
     }
 
     /*──────────────────────── Initializer ────────────────────────*/
-    function initializeVoting() external initializer {
+    function initializeVoting() external reinitializer(4) {
         __ReentrancyGuard_init();
-        ScrumPokerStorage.initializeStorage();
+        // Storage version will be checked during normal operations
+        // AdminFacet is responsible for initializing the storage version
     }
 
     /*────────────────────────── General Vote ─────────────────────*/

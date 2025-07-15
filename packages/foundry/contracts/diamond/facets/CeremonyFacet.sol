@@ -68,13 +68,13 @@ contract CeremonyFacet is Initializable, ReentrancyGuardUpgradeable {
     }
 
     /**
-     * @dev Inicializa o contrato CeremonyFacet e verifica/inicializa o versionamento do storage.
+     * @dev Inicializa o contrato CeremonyFacet.
      */
-    function initializeCeremony() external initializer {
+    function initializeCeremony() external reinitializer(3) {
         __ReentrancyGuard_init();
         
-        // Inicializa ou verifica o storage versionado
-        ScrumPokerStorage.initializeStorage();
+        // Storage version will be checked during normal operations
+        // AdminFacet is responsible for initializing the storage version
     }
 
     /**

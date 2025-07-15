@@ -8,7 +8,7 @@ export default createConfig({
   },
   networks: {
     localhost: {
-      chainId: 1337,
+      chainId: 31337,
       transport: http("http://127.0.0.1:8545"),
     },
   },
@@ -17,367 +17,318 @@ export default createConfig({
       network: "localhost",
       abi: [
         {
-          type: "event",
-          name: "CeremonyConcluded",
-          inputs: [
-            {
-              name: "ceremonyCode",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "endTime",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "sprintNumber",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "CeremonyStarted",
+                "inputs": [
+                        {
+                                "name": "ceremonyCode",
+                                "type": "string",
+                                "indexed": false
+                        },
+                        {
+                                "name": "sprintNumber",
+                                "type": "uint256",
+                                "indexed": false
+                        },
+                        {
+                                "name": "startTime",
+                                "type": "uint256",
+                                "indexed": false
+                        },
+                        {
+                                "name": "scrumMaster",
+                                "type": "address",
+                                "indexed": true
+                        }
+                ]
         },
         {
-          type: "event",
-          name: "CeremonyEntryRequested",
-          inputs: [
-            {
-              name: "ceremonyCode",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "participant",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "CeremonyEntryRequested",
+                "inputs": [
+                        {
+                                "name": "ceremonyCode",
+                                "type": "string",
+                                "indexed": false
+                        },
+                        {
+                                "name": "participant",
+                                "type": "address",
+                                "indexed": true
+                        }
+                ]
         },
         {
-          type: "event",
-          name: "CeremonyStarted",
-          inputs: [
-            {
-              name: "ceremonyCode",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "sprintNumber",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "startTime",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "scrumMaster",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "EntryApproved",
+                "inputs": [
+                        {
+                                "name": "ceremonyCode",
+                                "type": "string",
+                                "indexed": false
+                        },
+                        {
+                                "name": "participant",
+                                "type": "address",
+                                "indexed": true
+                        }
+                ]
         },
         {
-          type: "event",
-          name: "EntryApproved",
-          inputs: [
-            {
-              name: "ceremonyCode",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "participant",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "CeremonyConcluded",
+                "inputs": [
+                        {
+                                "name": "ceremonyCode",
+                                "type": "string",
+                                "indexed": false
+                        },
+                        {
+                                "name": "endTime",
+                                "type": "uint256",
+                                "indexed": false
+                        },
+                        {
+                                "name": "sprintNumber",
+                                "type": "uint256",
+                                "indexed": false
+                        }
+                ]
         }
-      ],
-      address: "0x82dc47734901ee7d4f4232f398752cb9dd5daccc",
-      startBlock: 15,
+],
+      address: "0x1121cBFfCEC885F26754d891f0f956045D1E3988",
+      startBlock: 4,
     },
     VotingFacet: {
       network: "localhost",
       abi: [
         {
-          type: "event",
-          name: "FunctionalityVoteCast",
-          inputs: [
-            {
-              name: "ceremonyCode",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "sessionIndex",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "participant",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "voteValue",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "FunctionalityVoteOpened",
+                "inputs": [
+                        {
+                                "name": "ceremonyCode",
+                                "type": "string",
+                                "indexed": false
+                        },
+                        {
+                                "name": "functionalityCode",
+                                "type": "string",
+                                "indexed": false
+                        },
+                        {
+                                "name": "sessionIndex",
+                                "type": "uint256",
+                                "indexed": false
+                        }
+                ]
         },
         {
-          type: "event",
-          name: "FunctionalityVoteClosed",
-          inputs: [
-            {
-              name: "ceremonyCode",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "sessionIndex",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "closer",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "FunctionalityVoteCommitted",
+                "inputs": [
+                        {
+                                "name": "ceremonyCode",
+                                "type": "string",
+                                "indexed": false
+                        },
+                        {
+                                "name": "sessionIndex",
+                                "type": "uint256",
+                                "indexed": false
+                        },
+                        {
+                                "name": "participant",
+                                "type": "address",
+                                "indexed": true
+                        }
+                ]
         },
         {
-          type: "event",
-          name: "FunctionalityVoteCommitted",
-          inputs: [
-            {
-              name: "ceremonyCode",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "sessionIndex",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "participant",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "FunctionalityVoteRevealed",
+                "inputs": [
+                        {
+                                "name": "ceremonyCode",
+                                "type": "string",
+                                "indexed": false
+                        },
+                        {
+                                "name": "sessionIndex",
+                                "type": "uint256",
+                                "indexed": false
+                        },
+                        {
+                                "name": "participant",
+                                "type": "address",
+                                "indexed": true
+                        },
+                        {
+                                "name": "voteValue",
+                                "type": "uint256",
+                                "indexed": false
+                        }
+                ]
         },
         {
-          type: "event",
-          name: "FunctionalityVoteOpened",
-          inputs: [
-            {
-              name: "ceremonyCode",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "functionalityCode",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "sessionIndex",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "FunctionalityVoteClosed",
+                "inputs": [
+                        {
+                                "name": "ceremonyCode",
+                                "type": "string",
+                                "indexed": false
+                        },
+                        {
+                                "name": "sessionIndex",
+                                "type": "uint256",
+                                "indexed": false
+                        },
+                        {
+                                "name": "closer",
+                                "type": "address",
+                                "indexed": true
+                        }
+                ]
         },
         {
-          type: "event",
-          name: "FunctionalityVoteRevealed",
-          inputs: [
-            {
-              name: "ceremonyCode",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "sessionIndex",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "participant",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "voteValue",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "FunctionalityVoteCast",
+                "inputs": [
+                        {
+                                "name": "ceremonyCode",
+                                "type": "string",
+                                "indexed": false
+                        },
+                        {
+                                "name": "sessionIndex",
+                                "type": "uint256",
+                                "indexed": false
+                        },
+                        {
+                                "name": "participant",
+                                "type": "address",
+                                "indexed": true
+                        },
+                        {
+                                "name": "voteValue",
+                                "type": "uint256",
+                                "indexed": false
+                        }
+                ]
         },
         {
-          type: "event",
-          name: "BadgeBatchProcessed",
-          inputs: [
-            {
-              name: "ceremonyCode",
-              type: "string",
-              indexed: false,
-              internalType: "string",
-            },
-            {
-              name: "startIndex",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "endIndex",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "BadgeBatchProcessed",
+                "inputs": [
+                        {
+                                "name": "ceremonyCode",
+                                "type": "string",
+                                "indexed": false
+                        },
+                        {
+                                "name": "sessionIndex",
+                                "type": "uint256",
+                                "indexed": false
+                        },
+                        {
+                                "name": "batchSize",
+                                "type": "uint256",
+                                "indexed": false
+                        }
+                ]
         },
         {
-          type: "event",
-          name: "NFTBadgeUpdated",
-          inputs: [
-            {
-              name: "participant",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "tokenId",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "NFTBadgeUpdated",
+                "inputs": [
+                        {
+                                "name": "participant",
+                                "type": "address",
+                                "indexed": true
+                        },
+                        {
+                                "name": "tokenId",
+                                "type": "uint256",
+                                "indexed": false
+                        }
+                ]
         }
-      ],
-      address: "0x82dc47734901ee7d4f4232f398752cb9dd5daccc",
-      startBlock: 15,
+],
+      address: "0x1121cBFfCEC885F26754d891f0f956045D1E3988",
+      startBlock: 4,
     },
     AdminFacet: {
       network: "localhost",
       abi: [
         {
-          type: "event",
-          name: "ContractPaused",
-          inputs: [
-            {
-              name: "operator",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "ContractUnpaused",
-          inputs: [
-            {
-              name: "operator",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "RoleGranted",
-          inputs: [
-            {
-              name: "role",
-              type: "bytes32",
-              indexed: true,
-              internalType: "bytes32",
-            },
-            {
-              name: "account",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-            {
-              name: "sender",
-              type: "address",
-              indexed: true,
-              internalType: "address",
-            },
-          ],
-          anonymous: false,
-        },
-        {
-          type: "event",
-          name: "ExchangeRateUpdated",
-          inputs: [
-            {
-              name: "newRate",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-            {
-              name: "timestamp",
-              type: "uint256",
-              indexed: false,
-              internalType: "uint256",
-            },
-          ],
-          anonymous: false,
+                "type": "event",
+                "name": "ExchangeRateUpdated",
+                "inputs": [
+                        {
+                                "name": "newRate",
+                                "type": "uint256",
+                                "indexed": false
+                        },
+                        {
+                                "name": "timestamp",
+                                "type": "uint256",
+                                "indexed": false
+                        }
+                ]
         }
-      ],
-      address: "0x82dc47734901ee7d4f4232f398752cb9dd5daccc",
-      startBlock: 15,
+],
+      address: "0x1121cBFfCEC885F26754d891f0f956045D1E3988",
+      startBlock: 4,
+    },
+    NFTFacet: {
+      network: "localhost",
+      abi: [
+        {
+                "type": "event",
+                "name": "NFTPurchased",
+                "inputs": [
+                        {
+                                "name": "buyer",
+                                "type": "address",
+                                "indexed": true
+                        },
+                        {
+                                "name": "tokenId",
+                                "type": "uint256",
+                                "indexed": false
+                        },
+                        {
+                                "name": "amountPaid",
+                                "type": "uint256",
+                                "indexed": false
+                        }
+                ]
+        },
+        {
+                "type": "event",
+                "name": "NFTRefunded",
+                "inputs": [
+                        {
+                                "name": "buyer",
+                                "type": "address",
+                                "indexed": true
+                        },
+                        {
+                                "name": "tokenId",
+                                "type": "uint256",
+                                "indexed": false
+                        },
+                        {
+                                "name": "amountRefunded",
+                                "type": "uint256",
+                                "indexed": false
+                        }
+                ]
+        }
+],
+      address: "0x1121cBFfCEC885F26754d891f0f956045D1E3988",
+      startBlock: 4,
     },
   },
 });

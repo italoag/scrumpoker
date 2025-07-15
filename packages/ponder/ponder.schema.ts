@@ -74,6 +74,17 @@ export const nftBadgeUpdate = onchainTable("nft_badge_update", (t) => ({
   transactionHash: t.hex().notNull(),
 }));
 
+// Compras de NFTs
+export const nftPurchase = onchainTable("nft_purchase", (t) => ({
+  id: t.text().primaryKey(), // buyer + tokenId
+  buyer: t.hex().notNull(),
+  tokenId: t.bigint().notNull(),
+  amountPaid: t.bigint().notNull(),
+  purchasedAt: t.integer().notNull(),
+  blockNumber: t.bigint().notNull(),
+  transactionHash: t.hex().notNull(),
+}));
+
 // Estatísticas gerais
 export const ceremonyStats = onchainTable("ceremony_stats", (t) => ({
   id: t.text().primaryKey(),
@@ -81,4 +92,17 @@ export const ceremonyStats = onchainTable("ceremony_stats", (t) => ({
   totalParticipants: t.bigint().notNull().default(0n),
   totalVotes: t.bigint().notNull().default(0n),
   lastUpdated: t.integer().notNull(),
+}));
+
+// Solicitações de aprovação de cerimônias
+export const ceremonyApprovalRequest = onchainTable("ceremony_approval_request", (t) => ({
+  id: t.text().primaryKey(), // ceremonyCode + participant
+  ceremonyCode: t.text().notNull(),
+  participant: t.hex().notNull(),
+  status: t.text().notNull().default("pending"), // "pending", "approved", "rejected"
+  requestedAt: t.integer().notNull(),
+  processedAt: t.integer(),
+  processedBy: t.hex(),
+  blockNumber: t.bigint().notNull(),
+  transactionHash: t.hex().notNull(),
 }));

@@ -9,7 +9,7 @@ via_ir = true
 ffi = true
 
 [rpc_endpoints]
-default_network = "https://rpc-besu.cluster.eita.cloud"
+besu = "https://rpc-besu.cluster.eita.cloud"
 localhost = "http://127.0.0.1:8545"
 
 mainnet = "https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}"

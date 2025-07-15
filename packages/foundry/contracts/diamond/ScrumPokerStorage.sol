@@ -121,6 +121,9 @@ library ScrumPokerStorage {
         // Controle de Acesso
         mapping(bytes32 => mapping(address => bool)) roles; // Role => (endereço => tem papel)
         
+        // Facet Initialization Tracking
+        mapping(string => uint256) facetVersions; // Facet name => initialization version
+        
     }
 
     // Constantes para controle de acesso baseado em papéis
@@ -286,6 +289,36 @@ library ScrumPokerStorage {
     function getCeremony(string memory code) internal view returns (Ceremony storage) {
         bytes32 codeHash = getCeremonyCodeHashView(code);
         return diamondStorage().ceremoniesByHash[codeHash];
+    }
+
+    /**
+     * @dev Marca uma faceta como inicializada com uma versão específica.
+     * @param facetName Nome da faceta.
+     * @param version Versão de inicialização.
+     */
+    function setFacetInitialized(string memory facetName, uint256 version) internal {
+        DiamondStorage storage ds = diamondStorage();
+        ds.facetVersions[facetName] = version;
+    }
+    
+    /**
+     * @dev Verifica se uma faceta foi inicializada.
+     * @param facetName Nome da faceta.
+     * @return Verdadeiro se a faceta foi inicializada.
+     */
+    function isFacetInitialized(string memory facetName) internal view returns (bool) {
+        DiamondStorage storage ds = diamondStorage();
+        return ds.facetVersions[facetName] > 0;
+    }
+    
+    /**
+     * @dev Obtém a versão de inicialização de uma faceta.
+     * @param facetName Nome da faceta.
+     * @return Versão de inicialização da faceta (0 se não inicializada).
+     */
+    function getFacetVersion(string memory facetName) internal view returns (uint256) {
+        DiamondStorage storage ds = diamondStorage();
+        return ds.facetVersions[facetName];
     }
 
     

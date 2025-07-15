@@ -9,7 +9,7 @@ contract TestEvents is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Endereço do CeremonyFacet deployado
-        address ceremonyFacetAddress = 0x4a679253410272dd5232b3ff7cf5dbb88f295319;
+        address ceremonyFacetAddress = 0x4A679253410272dd5232B3Ff7cF5dbB88f295319;
 
         // Tentando chamar uma função simples para testar
         (bool success, bytes memory data) = ceremonyFacetAddress.call(

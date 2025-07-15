@@ -3,13 +3,21 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "precodegen": "node scripts/config-manager.cjs backup",
     "codegen": "ponder codegen",
-    "db": "ponder db",
+    "postcodegen": "node scripts/config-manager.cjs fix && node scripts/validate-config.cjs",
+    "predev": "node scripts/validate-config.cjs",
     "dev": "ponder dev",
+    "db": "ponder db",
     "lint": "eslint .",
     "serve": "ponder serve",
     "start": "ponder start",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "config:backup": "node scripts/config-manager.cjs backup",
+    "config:restore": "node scripts/config-manager.cjs restore",
+    "config:fix": "node scripts/config-manager.cjs fix",
+    "config:sync": "node scripts/sync-contracts.cjs",
+    "validate": "node scripts/validate-config.cjs"
   },
   "dependencies": {
     "drizzle-kit": "0.22.8",
