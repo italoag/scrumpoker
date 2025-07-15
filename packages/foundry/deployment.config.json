@@ -1,0 +1,60 @@
+{
+  "deployment": {
+    "defaultNetwork": "anvil",
+    "defaultChainId": 31337,
+    "defaultStartBlock": 4,
+    "defaultPrivateKey": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+    "rpcUrl": "http://127.0.0.1:8545"
+  },
+  "ponder": {
+    "configPath": "../ponder/ponder.config.ts",
+    "databasePath": "../ponder/.ponder",
+    "autoRestart": true,
+    "clearDatabase": true
+  },
+  "initialization": {
+    "adminFacet": {
+      "exchangeRate": 1000,
+      "enabled": true
+    },
+    "nftFacet": {
+      "enabled": true
+    },
+    "ceremonyFacet": {
+      "enabled": true
+    },
+    "votingFacet": {
+      "enabled": true
+    }
+  },
+  "scripts": {
+    "deployScript": "script/DeployScrumPoker.s.sol",
+    "initScript": "script/InitializeContracts.s.sol",
+    "generateAbis": true,
+    "updatePonder": true,
+    "verbose": false
+  },
+  "networks": {
+    "anvil": {
+      "chainId": 31337,
+      "rpcUrl": "http://127.0.0.1:8545",
+      "startBlock": 4
+    },
+    "localhost": {
+      "chainId": 31337,
+      "rpcUrl": "http://127.0.0.1:8545",
+      "startBlock": 1
+    },
+    "hardhat": {
+      "chainId": 31337,
+      "rpcUrl": "http://127.0.0.1:8545",
+      "startBlock": 1
+    }
+  },
+  "paths": {
+    "deployments": "./deployments",
+    "artifacts": "./out",
+    "scripts": "./scripts-js",
+    "contracts": "./contracts"
+  }
+}
