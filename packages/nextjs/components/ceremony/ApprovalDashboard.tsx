@@ -127,26 +127,47 @@ export const ApprovalDashboard = ({
     }
   };
 
-  // Calcular estatísticas
-  const pendingCount = approvalRequests.filter(r => r.status === 'pending').length;
-  const totalRequests = approvalRequests.length;
-
-  // Debug: Log para verificar dados
-  console.log('ApprovalDashboard Debug:', {
+  // Debug: Verificar dados antes do filtro
+  console.log('ApprovalDashboard Debug - Dados completos:', {
     connectedAddress,
-    totalRequests: approvalRequests.length,
-    pendingRequests: pendingCount,
-    requests: approvalRequests.map(r => ({ id: r.id, ceremonyCode: r.ceremonyCode, status: r.status }))
+    ceremonies: ceremonies.map(c => ({ id: c.id, name: c.name, creator: c.creator })),
+    approvalRequests: approvalRequests.map(r => ({ id: r.id, ceremonyCode: r.ceremonyCode, status: r.status }))
+  });
+
+  // Filtrar cerimônias criadas pelo usuário conectado
+  const userCeremonies = ceremonies.filter(c => {
+    const isCreator = c.creator?.toLowerCase() === connectedAddress?.toLowerCase();
+    console.log('Checking ceremony:', { 
+      ceremonyId: c.id, 
+      ceremonyCreator: c.creator, 
+      connectedAddress, 
+      isCreator 
+    });
+    return isCreator;
   });
   
+  console.log('User ceremonies found:', userCeremonies.length);
+  
+  // TEMPORÁRIO: Se não encontrar cerimônias do usuário, mostrar todas para debug
+  const ceremoniesToShow = userCeremonies.length > 0 ? userCeremonies : ceremonies;
+  console.log('Ceremonies to show:', ceremoniesToShow.length, userCeremonies.length === 0 ? '(showing all for debug)' : '(user ceremonies only)');
+  
+  const userCeremonyCodes = new Set(ceremoniesToShow.map(c => c.id));
+  
+  // Filtrar solicitações apenas para cerimônias do usuário
+  const userApprovalRequests = approvalRequests.filter(request => 
+    userCeremonyCodes.has(request.ceremonyCode)
+  );
+  
   // Filtrar solicitações por status e cerimônia selecionada
-  const filteredRequests = approvalRequests.filter(request => {
+  const filteredRequests = userApprovalRequests.filter(request => {
     const matchesStatus = filter === 'all' || request.status === filter;
     const matchesCeremony = selectedCeremony === 'all' || request.ceremonyCode === selectedCeremony;
     
     console.log('Filtering request:', {
       requestId: request.id,
       ceremonyCode: request.ceremonyCode,
+      isUserCeremony: userCeremonyCodes.has(request.ceremonyCode),
       matchesStatus,
       matchesCeremony,
       willShow: matchesStatus && matchesCeremony
@@ -154,6 +175,10 @@ export const ApprovalDashboard = ({
     
     return matchesStatus && matchesCeremony;
   });
+
+  // Calcular estatísticas apenas para cerimônias do usuário
+  const pendingCount = userApprovalRequests.filter(r => r.status === 'pending').length;
+  const totalRequests = userApprovalRequests.length;
 
   const formatTimestamp = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleString();
@@ -184,25 +209,25 @@ export const ApprovalDashboard = ({
           <div className="stat-figure text-primary">
             <UserGroupIcon className="w-8 h-8" />
           </div>
-          <div className="stat-title">Available Ceremonies</div>
-          <div className="stat-value text-primary">{Array.from(new Set(approvalRequests.map(r => r.ceremonyCode))).length}</div>
-          <div className="stat-desc">With approval requests</div>
+          <div className="stat-title">Suas Cerimônias</div>
+          <div className="stat-value text-primary">{ceremoniesToShow.length}</div>
+          <div className="stat-desc">Com solicitações pendentes</div>
         </div>
         <div className="stat">
           <div className="stat-figure text-warning">
             <ClockIcon className="w-8 h-8" />
           </div>
-          <div className="stat-title">Pending Approvals</div>
+          <div className="stat-title">Aprovações Pendentes</div>
           <div className="stat-value text-warning">{pendingCount}</div>
-          <div className="stat-desc">Awaiting your approval</div>
+          <div className="stat-desc">Aguardando sua aprovação</div>
         </div>
         <div className="stat">
           <div className="stat-figure text-success">
             <CheckIcon className="w-8 h-8" />
           </div>
-          <div className="stat-title">Total Requests</div>
+          <div className="stat-title">Total de Solicitações</div>
           <div className="stat-value text-success">{totalRequests}</div>
-          <div className="stat-desc">All time</div>
+          <div className="stat-desc">Suas cerimônias</div>
         </div>
       </div>
 
@@ -238,11 +263,10 @@ export const ApprovalDashboard = ({
                 value={selectedCeremony}
                 onChange={(e) => setSelectedCeremony(e.target.value)}
               >
-                <option value="all">All Ceremonies</option>
-                {/* Usar códigos únicos das solicitações de aprovação */}
-                {Array.from(new Set(approvalRequests.map(r => r.ceremonyCode))).map(ceremonyCode => (
-                  <option key={ceremonyCode} value={ceremonyCode}>
-                    {ceremonyCode}
+                <option value="all">Suas Cerimônias</option>
+                {ceremoniesToShow.map(ceremony => (
+                  <option key={ceremony.id} value={ceremony.id}>
+                    {ceremony.name}
                   </option>
                 ))}
               </select>
@@ -261,15 +285,28 @@ export const ApprovalDashboard = ({
       </div>
 
       {/* Approval Requests */}
-      {filteredRequests.length === 0 ? (
+      {ceremoniesToShow.length === 0 ? (
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body text-center">
+            <UserGroupIcon className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Modo Debug Ativo</h3>
+            <p className="text-gray-600">
+              {userCeremonies.length === 0 
+                ? "Nenhuma cerimônia encontrada com filtro de ownership. Mostrando todas para debug."
+                : "Você ainda não criou nenhuma cerimônia. Apenas criadores de cerimônias podem aprovar solicitações de entrada."
+              }
+            </p>
+          </div>
+        </div>
+      ) : filteredRequests.length === 0 ? (
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body text-center">
             <ExclamationTriangleIcon className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold">No approval requests found</h3>
+            <h3 className="text-lg font-semibold">Nenhuma solicitação encontrada</h3>
             <p className="text-gray-600">
               {filter === 'pending' 
-                ? "No pending approval requests for your ceremonies."
-                : "No approval requests match your current filters."
+                ? "Não há solicitações pendentes para suas cerimônias."
+                : "Nenhuma solicitação corresponde aos filtros selecionados."
               }
             </p>
           </div>
@@ -318,18 +355,20 @@ export const ApprovalDashboard = ({
                         <button 
                           className="btn btn-success btn-sm"
                           onClick={() => handleApprove(request)}
-                          disabled={!connectedAddress}
+                          disabled={!connectedAddress || !userCeremonyCodes.has(request.ceremonyCode)}
+                          title={!userCeremonyCodes.has(request.ceremonyCode) ? "Apenas o criador da cerimônia pode aprovar" : ""}
                         >
                           <CheckIcon className="w-4 h-4" />
-                          Approve
+                          Aprovar
                         </button>
                         <button 
                           className="btn btn-error btn-sm"
                           onClick={() => handleReject(request)}
-                          disabled={!connectedAddress}
+                          disabled={!connectedAddress || !userCeremonyCodes.has(request.ceremonyCode)}
+                          title={!userCeremonyCodes.has(request.ceremonyCode) ? "Apenas o criador da cerimônia pode rejeitar" : ""}
                         >
                           <XMarkIcon className="w-4 h-4" />
-                          Reject
+                          Rejeitar
                         </button>
                       </div>
                     )}
