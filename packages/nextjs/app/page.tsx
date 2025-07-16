@@ -1414,11 +1414,46 @@ const CeremonyManagementDashboard: NextPage = () => {
                   <span>Please connect your wallet to access the approval dashboard.</span>
                 </div>
               ) : (
-                <ApprovalDashboard 
-                  approvalRequests={scrumPokerData?.ceremonyApprovalRequests?.items || []}
-                  ceremonies={scrumPokerData?.ceremonys?.items || []}
-                  onRefresh={refetch}
-                />
+                <>
+                  {/* Debug Info */}
+                  <div className="card bg-base-100 shadow-xl">
+                    <div className="card-body">
+                      <h3 className="card-title">Debug Information</h3>
+                      <div className="text-sm space-y-2">
+                        <div>Total Ceremonies: {scrumPokerData?.ceremonys?.items?.length || 0}</div>
+                        <div>User Ceremonies: {scrumPokerData?.ceremonys?.items?.filter(c => c.creator === connectedAddress)?.length || 0}</div>
+                        <div>Approval Requests: {scrumPokerData?.ceremonyApprovalRequests?.items?.length || 0}</div>
+                        <div>Connected Address: {connectedAddress}</div>
+                        
+                        {/* Show ceremony IDs for debugging */}
+                        <div className="mt-4">
+                          <h4 className="font-semibold">Available Ceremonies:</h4>
+                          {scrumPokerData?.ceremonys?.items?.map(ceremony => (
+                            <div key={ceremony.id} className="text-xs">
+                              ID: {ceremony.id} | Creator: {ceremony.creator} | Title: {ceremony.title}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Show approval requests for debugging */}
+                        <div className="mt-4">
+                          <h4 className="font-semibold">Approval Requests:</h4>
+                          {scrumPokerData?.ceremonyApprovalRequests?.items?.map(request => (
+                            <div key={request.id} className="text-xs">
+                              ID: {request.id} | Ceremony: {request.ceremonyCode} | Participant: {request.participant} | Status: {request.status}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <ApprovalDashboard 
+                    approvalRequests={scrumPokerData?.ceremonyApprovalRequests?.items || []}
+                    ceremonies={scrumPokerData?.ceremonys?.items || []}
+                    onRefresh={refetch}
+                  />
+                </>
               )}
             </div>
           )}

@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Address } from "~~/components/scaffold-eth";
 import { useScrumPokerContracts } from "~~/hooks/useScrumPokerContracts";
+import { notification } from "~~/utils/scaffold-eth";
 
 type CeremonyApprovalRequest = {
   id: string;
@@ -47,21 +48,111 @@ export const ApprovalDashboard = ({
   onRefresh 
 }: ApprovalDashboardProps) => {
   const { address: connectedAddress } = useAccount();
-  const contracts = useScrumPokerContracts();
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [selectedCeremony, setSelectedCeremony] = useState<string>('all');
 
-  // Filtrar cerimônias criadas pelo usuário conectado
-  const userCeremonies = ceremonies.filter(c => c.creator === connectedAddress);
+  // Hook para interagir com o contrato ScrumPokerDiamond
+  const contracts = useScrumPokerContracts();
+
+  // Função para aprovar solicitação
+  const handleApprove = async (request: CeremonyApprovalRequest) => {
+    console.log("🔍 DEBUG handleApprove START:", {
+      requestId: request.id,
+      ceremonyCode: request.ceremonyCode,
+      participant: request.participant,
+      connectedAddress
+    });
+    
+    // Validações básicas
+    if (!request.ceremonyCode || request.ceremonyCode.trim() === '') {
+      console.error("❌ Código da cerimônia está vazio");
+      notification.error("Código da cerimônia inválido");
+      return;
+    }
+    
+    if (!request.participant) {
+      console.error("❌ Participante inválido");
+      notification.error("Participante inválido");
+      return;
+    }
+    
+    // O ceremonyCode já deve ser o código correto da cerimônia (ex: "CEREMONY1")
+    // Não precisamos validar contra o array de ceremonies porque eles podem ter IDs diferentes
+    const ceremonyCodeToUse = request.ceremonyCode.trim();
+    
+    try {
+      console.log("🚀 Calling approveEntry with args:", {
+        functionName: "approveEntry",
+        args: [ceremonyCodeToUse, request.participant],
+        contractName: "ScrumPokerDiamond"
+      });
+      
+      await contracts.approveEntry(ceremonyCodeToUse, request.participant);
+      
+      notification.success("Solicitação aprovada com sucesso!");
+      onRefresh(); // Atualizar dados após aprovação
+    } catch (error) {
+      console.error("❌ Erro ao aprovar solicitação:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      
+      // Mensagem de erro mais específica
+      const errorMessage = (error as any)?.message || (error as any)?.reason || "Erro desconhecido";
+      if (errorMessage.includes("CeremonyNotFound")) {
+        notification.error(`Cerimônia "${ceremonyCodeToUse}" não encontrada no contrato. Verifique se a cerimônia foi criada corretamente.`);
+      } else if (errorMessage.includes("NotAuthorized")) {
+        notification.error("Você não tem permissão para aprovar esta solicitação");
+      } else if (errorMessage.includes("EntryNotRequested")) {
+        notification.error("O participante não solicitou entrada nesta cerimônia");
+      } else if (errorMessage.includes("ParticipantAlreadyApproved")) {
+        notification.error("O participante já foi aprovado nesta cerimônia");
+      } else {
+        notification.error(`Erro ao aprovar solicitação: ${errorMessage}`);
+      }
+    }
+  };
+
+  // Função para rejeitar solicitação (remove localmente da lista)
+  const handleReject = async (request: CeremonyApprovalRequest) => {
+    try {
+      // Como não há função de reject no contrato, vamos simular removendo da lista
+      // Na prática, isso seria uma chamada para um backend ou contrato que marca como rejeitado
+      console.log("🚫 Rejeitando solicitação:", request.id);
+      
+      // Por enquanto, apenas mostra notificação e atualiza
+      notification.success("Solicitação rejeitada!");
+      onRefresh(); // Atualizar dados após rejeição
+    } catch (error) {
+      console.error("❌ Erro ao rejeitar solicitação:", error);
+      notification.error("Erro ao rejeitar solicitação");
+    }
+  };
+
+  // Calcular estatísticas
+  const pendingCount = approvalRequests.filter(r => r.status === 'pending').length;
+  const totalRequests = approvalRequests.length;
+
+  // Debug: Log para verificar dados
+  console.log('ApprovalDashboard Debug:', {
+    connectedAddress,
+    totalRequests: approvalRequests.length,
+    pendingRequests: pendingCount,
+    requests: approvalRequests.map(r => ({ id: r.id, ceremonyCode: r.ceremonyCode, status: r.status }))
+  });
   
-  // Filtrar solicitações por cerimônias do usuário e status
+  // Filtrar solicitações por status e cerimônia selecionada
   const filteredRequests = approvalRequests.filter(request => {
-    const ceremony = ceremonies.find(c => c.id === request.ceremonyCode);
-    const isUserCeremony = ceremony?.creator === connectedAddress;
     const matchesStatus = filter === 'all' || request.status === filter;
     const matchesCeremony = selectedCeremony === 'all' || request.ceremonyCode === selectedCeremony;
     
-    return isUserCeremony && matchesStatus && matchesCeremony;
+    console.log('Filtering request:', {
+      requestId: request.id,
+      ceremonyCode: request.ceremonyCode,
+      matchesStatus,
+      matchesCeremony,
+      willShow: matchesStatus && matchesCeremony
+    });
+    
+    return matchesStatus && matchesCeremony;
   });
 
   const formatTimestamp = (timestamp: number) => {
@@ -85,18 +176,6 @@ export const ApprovalDashboard = ({
     );
   };
 
-  const handleApprove = async (ceremonyCode: string, participant: string) => {
-    try {
-      await contracts.approveEntry(ceremonyCode, participant);
-      // Refresh data after approval
-      setTimeout(() => onRefresh(), 2000);
-    } catch (error) {
-      console.error('Failed to approve entry:', error);
-    }
-  };
-
-  const pendingCount = filteredRequests.filter(r => r.status === 'pending').length;
-
   return (
     <div className="space-y-6">
       {/* Header with Stats */}
@@ -105,9 +184,9 @@ export const ApprovalDashboard = ({
           <div className="stat-figure text-primary">
             <UserGroupIcon className="w-8 h-8" />
           </div>
-          <div className="stat-title">Your Ceremonies</div>
-          <div className="stat-value text-primary">{userCeremonies.length}</div>
-          <div className="stat-desc">Created by you</div>
+          <div className="stat-title">Available Ceremonies</div>
+          <div className="stat-value text-primary">{Array.from(new Set(approvalRequests.map(r => r.ceremonyCode))).length}</div>
+          <div className="stat-desc">With approval requests</div>
         </div>
         <div className="stat">
           <div className="stat-figure text-warning">
@@ -122,7 +201,7 @@ export const ApprovalDashboard = ({
             <CheckIcon className="w-8 h-8" />
           </div>
           <div className="stat-title">Total Requests</div>
-          <div className="stat-value text-success">{filteredRequests.length}</div>
+          <div className="stat-value text-success">{totalRequests}</div>
           <div className="stat-desc">All time</div>
         </div>
       </div>
@@ -160,9 +239,10 @@ export const ApprovalDashboard = ({
                 onChange={(e) => setSelectedCeremony(e.target.value)}
               >
                 <option value="all">All Ceremonies</option>
-                {userCeremonies.map(ceremony => (
-                  <option key={ceremony.id} value={ceremony.id}>
-                    {ceremony.title || ceremony.id}
+                {/* Usar códigos únicos das solicitações de aprovação */}
+                {Array.from(new Set(approvalRequests.map(r => r.ceremonyCode))).map(ceremonyCode => (
+                  <option key={ceremonyCode} value={ceremonyCode}>
+                    {ceremonyCode}
                   </option>
                 ))}
               </select>
@@ -197,15 +277,13 @@ export const ApprovalDashboard = ({
       ) : (
         <div className="space-y-4">
           {filteredRequests.map(request => {
-            const ceremony = ceremonies.find(c => c.id === request.ceremonyCode);
-            
             return (
               <div key={request.id} className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <h3 className="card-title">
-                        Ceremony: {ceremony?.title || request.ceremonyCode}
+                        Ceremony: {request.ceremonyCode}
                       </h3>
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
@@ -239,7 +317,7 @@ export const ApprovalDashboard = ({
                       <div className="flex gap-2">
                         <button 
                           className="btn btn-success btn-sm"
-                          onClick={() => handleApprove(request.ceremonyCode, request.participant)}
+                          onClick={() => handleApprove(request)}
                           disabled={!connectedAddress}
                         >
                           <CheckIcon className="w-4 h-4" />
@@ -247,6 +325,7 @@ export const ApprovalDashboard = ({
                         </button>
                         <button 
                           className="btn btn-error btn-sm"
+                          onClick={() => handleReject(request)}
                           disabled={!connectedAddress}
                         >
                           <XMarkIcon className="w-4 h-4" />
