@@ -1,10 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { gql, request } from "graphql-request";
 import type { NextPage } from "next";
-import { useState, useEffect } from "react";
 import { Address } from "~~/components/scaffold-eth";
 
 // Tipos para os dados do ScrumPoker
@@ -75,16 +75,16 @@ type ScrumPokerData = {
 
 const fetchScrumPokerData = async () => {
   // Durante SSR, retornar dados vazios mas permitir que o cliente faça o fetch
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return {
       ceremonys: { items: [] },
       ceremonyParticipants: { items: [] },
       functionalitySessions: { items: [] },
       functionalityVotes: { items: [] },
-      ceremonyStatss: { items: [] }
+      ceremonyStatss: { items: [] },
     };
   }
-  
+
   const ScrumPokerQuery = gql`
     query ScrumPokerData {
       ceremonys(orderBy: "createdAt", orderDirection: "desc") {
@@ -151,46 +151,52 @@ const fetchScrumPokerData = async () => {
       }
     }
   `;
-  
+
   try {
-    console.log('Fetching from Ponder URL:', process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069");
-    
+    console.log("Fetching from Ponder URL:", process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069");
+
     const data = await request<ScrumPokerData>(
       process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069",
       ScrumPokerQuery,
     );
-    
-    console.log('Successfully fetched data:', data);
+
+    console.log("Successfully fetched data:", data);
     return data;
   } catch (error) {
     console.error("Failed to fetch ScrumPoker data from Ponder:", error);
     console.error("Error details:", {
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
-      url: process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069"
+      url: process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069",
     });
-    
+
     return {
       ceremonys: { items: [] },
       ceremonyParticipants: { items: [] },
       functionalitySessions: { items: [] },
       functionalityVotes: { items: [] },
-      ceremonyStatss: { items: [] }
+      ceremonyStatss: { items: [] },
     };
   }
 };
 
 const ScrumPokerDashboard: NextPage = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'ceremonies' | 'sessions' | 'votes' | 'participants'>('overview');
-  
+  const [activeTab, setActiveTab] = useState<"overview" | "ceremonies" | "sessions" | "votes" | "participants">(
+    "overview",
+  );
+
   // Debug: verificar se a variável de ambiente está sendo carregada
   useEffect(() => {
-    console.log('Environment check:');
-    console.log('NEXT_PUBLIC_PONDER_URL:', process.env.NEXT_PUBLIC_PONDER_URL);
-    console.log('Window object exists:', typeof window !== 'undefined');
+    console.log("Environment check:");
+    console.log("NEXT_PUBLIC_PONDER_URL:", process.env.NEXT_PUBLIC_PONDER_URL);
+    console.log("Window object exists:", typeof window !== "undefined");
   }, []);
-  
-  const { data: scrumPokerData, isLoading, error } = useQuery({
+
+  const {
+    data: scrumPokerData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["scrumPokerData"],
     queryFn: fetchScrumPokerData,
     refetchInterval: 5000, // Atualizar a cada 5 segundos
@@ -203,10 +209,10 @@ const ScrumPokerDashboard: NextPage = () => {
   const getStatusBadge = (status: string) => {
     const statusColors = {
       created: "badge-info",
-      started: "badge-success", 
+      started: "badge-success",
       concluded: "badge-neutral",
       opened: "badge-warning",
-      closed: "badge-error"
+      closed: "badge-error",
     };
     return `badge ${statusColors[status as keyof typeof statusColors] || "badge-ghost"}`;
   };
@@ -219,9 +225,7 @@ const ScrumPokerDashboard: NextPage = () => {
         <div className="px-5 text-center">
           <h1 className="text-4xl font-bold">ScrumPoker Dashboard</h1>
           <div>
-            <p>
-              Real-time monitoring of ScrumPoker ceremonies, voting sessions, and participant activities.
-            </p>
+            <p>Real-time monitoring of ScrumPoker ceremonies, voting sessions, and participant activities.</p>
             <p>
               Powered by{" "}
               <a target="_blank" href="https://ponder.sh/" className="underline font-bold text-nowrap">
@@ -251,33 +255,33 @@ const ScrumPokerDashboard: NextPage = () => {
 
           {/* Navegação por Abas */}
           <div className="tabs tabs-boxed mt-6">
-            <button 
-              className={`tab ${activeTab === 'overview' ? 'tab-active' : ''}`}
-              onClick={() => setActiveTab('overview')}
+            <button
+              className={`tab ${activeTab === "overview" ? "tab-active" : ""}`}
+              onClick={() => setActiveTab("overview")}
             >
               Overview
             </button>
-            <button 
-              className={`tab ${activeTab === 'ceremonies' ? 'tab-active' : ''}`}
-              onClick={() => setActiveTab('ceremonies')}
+            <button
+              className={`tab ${activeTab === "ceremonies" ? "tab-active" : ""}`}
+              onClick={() => setActiveTab("ceremonies")}
             >
               Ceremonies
             </button>
-            <button 
-              className={`tab ${activeTab === 'sessions' ? 'tab-active' : ''}`}
-              onClick={() => setActiveTab('sessions')}
+            <button
+              className={`tab ${activeTab === "sessions" ? "tab-active" : ""}`}
+              onClick={() => setActiveTab("sessions")}
             >
               Sessions
             </button>
-            <button 
-              className={`tab ${activeTab === 'votes' ? 'tab-active' : ''}`}
-              onClick={() => setActiveTab('votes')}
+            <button
+              className={`tab ${activeTab === "votes" ? "tab-active" : ""}`}
+              onClick={() => setActiveTab("votes")}
             >
               Votes
             </button>
-            <button 
-              className={`tab ${activeTab === 'participants' ? 'tab-active' : ''}`}
-              onClick={() => setActiveTab('participants')}
+            <button
+              className={`tab ${activeTab === "participants" ? "tab-active" : ""}`}
+              onClick={() => setActiveTab("participants")}
             >
               Participants
             </button>
@@ -301,17 +305,17 @@ const ScrumPokerDashboard: NextPage = () => {
           {scrumPokerData && !isLoading && (
             <>
               {/* Overview Tab */}
-              {activeTab === 'overview' && (
+              {activeTab === "overview" && (
                 <div>
                   <h2 className="text-center text-3xl font-bold mb-6">System Overview</h2>
-                  
+
                   {/* Recent Activity */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Recent Ceremonies */}
                     <div className="card bg-base-100 shadow-xl">
                       <div className="card-body">
                         <h3 className="card-title">Recent Ceremonies</h3>
-                        {scrumPokerData.ceremonys.items.slice(0, 3).map((ceremony) => (
+                        {scrumPokerData.ceremonys.items.slice(0, 3).map(ceremony => (
                           <div key={ceremony.id} className="flex items-center justify-between border-b pb-2">
                             <div>
                               <p className="font-semibold">{ceremony.title}</p>
@@ -333,7 +337,7 @@ const ScrumPokerDashboard: NextPage = () => {
                     <div className="card bg-base-100 shadow-xl">
                       <div className="card-body">
                         <h3 className="card-title">Recent Voting Sessions</h3>
-                        {scrumPokerData.functionalitySessions.items.slice(0, 3).map((session) => (
+                        {scrumPokerData.functionalitySessions.items.slice(0, 3).map(session => (
                           <div key={session.id} className="flex items-center justify-between border-b pb-2">
                             <div>
                               <p className="font-semibold">{session.functionalityCode}</p>
@@ -355,7 +359,7 @@ const ScrumPokerDashboard: NextPage = () => {
               )}
 
               {/* Ceremonies Tab */}
-              {activeTab === 'ceremonies' && (
+              {activeTab === "ceremonies" && (
                 <div>
                   <h2 className="text-center text-3xl font-bold mb-6">Ceremonies</h2>
                   {scrumPokerData.ceremonys.items.length === 0 ? (
@@ -365,7 +369,7 @@ const ScrumPokerDashboard: NextPage = () => {
                     </div>
                   ) : (
                     <div className="grid gap-4">
-                      {scrumPokerData.ceremonys.items.map((ceremony) => (
+                      {scrumPokerData.ceremonys.items.map(ceremony => (
                         <div key={ceremony.id} className="card bg-base-100 shadow-xl">
                           <div className="card-body">
                             <div className="flex justify-between items-start">
@@ -407,7 +411,7 @@ const ScrumPokerDashboard: NextPage = () => {
               )}
 
               {/* Sessions Tab */}
-              {activeTab === 'sessions' && (
+              {activeTab === "sessions" && (
                 <div>
                   <h2 className="text-center text-3xl font-bold mb-6">Voting Sessions</h2>
                   {scrumPokerData.functionalitySessions.items.length === 0 ? (
@@ -416,7 +420,7 @@ const ScrumPokerDashboard: NextPage = () => {
                     </div>
                   ) : (
                     <div className="grid gap-4">
-                      {scrumPokerData.functionalitySessions.items.map((session) => (
+                      {scrumPokerData.functionalitySessions.items.map(session => (
                         <div key={session.id} className="card bg-base-100 shadow-xl">
                           <div className="card-body">
                             <div className="flex justify-between items-start">
@@ -454,7 +458,7 @@ const ScrumPokerDashboard: NextPage = () => {
               )}
 
               {/* Votes Tab */}
-              {activeTab === 'votes' && (
+              {activeTab === "votes" && (
                 <div>
                   <h2 className="text-center text-3xl font-bold mb-6">Functionality Votes</h2>
                   {scrumPokerData.functionalityVotes.items.length === 0 ? (
@@ -463,7 +467,7 @@ const ScrumPokerDashboard: NextPage = () => {
                     </div>
                   ) : (
                     <div className="grid gap-4">
-                      {scrumPokerData.functionalityVotes.items.map((vote) => (
+                      {scrumPokerData.functionalityVotes.items.map(vote => (
                         <div key={vote.id} className="card bg-base-100 shadow-xl">
                           <div className="card-body">
                             <div className="flex justify-between items-start">
@@ -509,7 +513,7 @@ const ScrumPokerDashboard: NextPage = () => {
               )}
 
               {/* Participants Tab */}
-              {activeTab === 'participants' && (
+              {activeTab === "participants" && (
                 <div>
                   <h2 className="text-center text-3xl font-bold mb-6">Ceremony Participants</h2>
                   {scrumPokerData.ceremonyParticipants.items.length === 0 ? (
@@ -518,7 +522,7 @@ const ScrumPokerDashboard: NextPage = () => {
                     </div>
                   ) : (
                     <div className="grid gap-4">
-                      {scrumPokerData.ceremonyParticipants.items.map((participant) => (
+                      {scrumPokerData.ceremonyParticipants.items.map(participant => (
                         <div key={participant.id} className="card bg-base-100 shadow-xl">
                           <div className="card-body">
                             <div className="flex justify-between items-center">

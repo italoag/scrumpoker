@@ -1,30 +1,29 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { gql, request } from "graphql-request";
 import type { NextPage } from "next";
-import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
-import { 
-  PlusIcon, 
-  PlayIcon, 
-  StopIcon, 
-  UserGroupIcon, 
+import {
   ChartBarIcon,
-  ClockIcon,
   CheckCircleIcon,
-  XCircleIcon,
-  EyeIcon,
-  EyeSlashIcon,
+  ClockIcon,
   CogIcon,
   DocumentTextIcon,
-  TrophyIcon
+  EyeIcon,
+  PlayIcon,
+  PlusIcon,
+  StopIcon,
+  TrophyIcon,
+  UserGroupIcon,
+  XCircleIcon,
 } from "@heroicons/react/24/outline";
+import { ApprovalDashboard } from "~~/components/ceremony/ApprovalDashboard";
 import { Address } from "~~/components/scaffold-eth";
 import { useScrumPokerContracts } from "~~/hooks/useScrumPokerContracts";
-import { ApprovalDashboard } from "~~/components/ceremony/ApprovalDashboard";
-
+import { notification } from "~~/utils/scaffold-eth";
 
 // Types for ScrumPoker data
 type Ceremony = {
@@ -106,17 +105,17 @@ type ScrumPokerData = {
 };
 
 const fetchScrumPokerData = async () => {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return {
       ceremonys: { items: [] },
       ceremonyParticipants: { items: [] },
       functionalitySessions: { items: [] },
       functionalityVotes: { items: [] },
       ceremonyStatss: { items: [] },
-      ceremonyApprovalRequests: { items: [] }
+      ceremonyApprovalRequests: { items: [] },
     };
   }
-  
+
   const ScrumPokerQuery = gql`
     query ScrumPokerData {
       ceremonys(orderBy: "createdAt", orderDirection: "desc") {
@@ -196,7 +195,7 @@ const fetchScrumPokerData = async () => {
       }
     }
   `;
-  
+
   try {
     const data = await request<ScrumPokerData>(
       process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069",
@@ -211,25 +210,70 @@ const fetchScrumPokerData = async () => {
       functionalitySessions: { items: [] },
       functionalityVotes: { items: [] },
       ceremonyStatss: { items: [] },
-      ceremonyApprovalRequests: { items: [] }
+      ceremonyApprovalRequests: { items: [] },
     };
   }
 };
 
 const CeremonyManagementDashboard: NextPage = () => {
   const { address: connectedAddress } = useAccount();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'create' | 'ceremonies' | 'voting' | 'participants' | 'nft' | 'admin' | 'approvals'>('dashboard');
-  const [newCeremony, setNewCeremony] = useState({ title: '', description: '' });
-  const [newFunctionality, setNewFunctionality] = useState({ ceremonyCode: '', functionalityCode: '' });
-  const [voteData, setVoteData] = useState({ ceremonyCode: '', sessionIndex: '', voteValue: '' });
-  const [participantData, setParticipantData] = useState({ ceremonyCode: '' });
   const contracts = useScrumPokerContracts();
-  
-  const { data: scrumPokerData, isLoading, error, refetch } = useQuery({
+
+  const {
+    data: scrumPokerData,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["scrumPokerData"],
     queryFn: fetchScrumPokerData,
     refetchInterval: 3000,
   });
+
+  const [activeTab, setActiveTab] = useState<
+    "dashboard" | "create" | "ceremonies" | "voting" | "participants" | "nft" | "admin" | "approvals"
+  >("dashboard");
+  const [newCeremony, setNewCeremony] = useState({ title: "", description: "" });
+  const [newFunctionality, setNewFunctionality] = useState({ ceremonyCode: "", functionalityCode: "" });
+  const [voteData, setVoteData] = useState({ ceremonyCode: "", sessionIndex: "", voteValue: "" });
+  const [participantData, setParticipantData] = useState({ ceremonyCode: "" });
+
+  useEffect(() => {
+    console.log("🔍 Data updated:", {
+      ceremonies: scrumPokerData?.ceremonys?.items?.length || 0,
+      sessions: scrumPokerData?.functionalitySessions?.items?.length || 0,
+      votes: scrumPokerData?.functionalityVotes?.items?.length || 0,
+      connectedAddress,
+    });
+
+    if (scrumPokerData?.ceremonys?.items && scrumPokerData.ceremonys.items.length > 0) {
+      console.log(
+        "📋 Available ceremonies:",
+        scrumPokerData.ceremonys.items.map(c => ({
+          id: c.id,
+          title: c.title,
+          status: c.status,
+          creator: c.creator,
+        })),
+      );
+    } else {
+      console.log("⚠️ No ceremonies found");
+    }
+
+    if (scrumPokerData?.functionalitySessions?.items && scrumPokerData.functionalitySessions.items.length > 0) {
+      console.log(
+        "🎯 Available sessions:",
+        scrumPokerData.functionalitySessions.items.map(s => ({
+          ceremonyCode: s.ceremonyCode,
+          functionalityCode: s.functionalityCode,
+          status: s.status,
+          sessionIndex: s.sessionIndex,
+        })),
+      );
+    } else {
+      console.log("⚠️ No sessions found");
+    }
+  }, [scrumPokerData, connectedAddress]);
 
   const formatTimestamp = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleString();
@@ -241,11 +285,11 @@ const CeremonyManagementDashboard: NextPage = () => {
       started: { class: "badge-success", icon: PlayIcon },
       concluded: { class: "badge-neutral", icon: CheckCircleIcon },
       opened: { class: "badge-warning", icon: EyeIcon },
-      closed: { class: "badge-error", icon: XCircleIcon }
+      closed: { class: "badge-error", icon: XCircleIcon },
     };
     const config = statusConfig[status as keyof typeof statusConfig] || { class: "badge-ghost", icon: ClockIcon };
     const IconComponent = config.icon;
-    
+
     return (
       <div className={`badge ${config.class} gap-2`}>
         <IconComponent className="w-3 h-3" />
@@ -256,7 +300,8 @@ const CeremonyManagementDashboard: NextPage = () => {
 
   const stats = scrumPokerData?.ceremonyStatss?.items?.[0];
   const userCeremonies = scrumPokerData?.ceremonys?.items?.filter(c => c.creator === connectedAddress) || [];
-  const userParticipations = scrumPokerData?.ceremonyParticipants?.items?.filter(p => p.participant === connectedAddress) || [];
+  const userParticipations =
+    scrumPokerData?.ceremonyParticipants?.items?.filter(p => p.participant === connectedAddress) || [];
 
   // Form handlers
   const handleCreateCeremony = async () => {
@@ -264,27 +309,27 @@ const CeremonyManagementDashboard: NextPage = () => {
     console.log("newCeremony.title:", newCeremony.title);
     console.log("connectedAddress:", connectedAddress);
     console.log("contracts:", contracts);
-    
+
     if (!newCeremony.title.trim()) {
       console.log("Title is empty, returning");
       return;
     }
-    
+
     if (!connectedAddress) {
       console.log("No connected address, returning");
       return;
     }
-    
+
     try {
       console.log("About to call startCeremony");
       // Start ceremony with a default sprint number (1)
       const result = await contracts.startCeremony(1);
       console.log("startCeremony result:", result);
-      setNewCeremony({ title: '', description: '' });
+      setNewCeremony({ title: "", description: "" });
       // Refresh data after successful creation
       setTimeout(() => refetch(), 2000);
     } catch (error) {
-      console.error('Failed to create ceremony:', error);
+      console.error("Failed to create ceremony:", error);
     }
   };
 
@@ -294,7 +339,7 @@ const CeremonyManagementDashboard: NextPage = () => {
       // Refresh data after successful start
       setTimeout(() => refetch(), 2000);
     } catch (error) {
-      console.error('Failed to start ceremony:', error);
+      console.error("Failed to start ceremony:", error);
     }
   };
 
@@ -304,56 +349,98 @@ const CeremonyManagementDashboard: NextPage = () => {
       // Refresh data after successful conclusion
       setTimeout(() => refetch(), 2000);
     } catch (error) {
-      console.error('Failed to conclude ceremony:', error);
+      console.error("Failed to conclude ceremony:", error);
     }
   };
 
   const handleOpenSession = async () => {
+    console.log("🔍 handleOpenSession called with:", {
+      ceremonyCode: newFunctionality.ceremonyCode,
+      functionalityCode: newFunctionality.functionalityCode,
+      connectedAddress,
+    });
+
     if (!newFunctionality.ceremonyCode.trim() || !newFunctionality.functionalityCode.trim()) {
+      console.log("❌ Missing required fields");
+      notification.error("Please fill in both ceremony code and functionality code");
       return;
     }
-    
+
     try {
-      await contracts.openFunctionalityVote(newFunctionality.ceremonyCode, newFunctionality.functionalityCode);
-      setNewFunctionality({ ceremonyCode: '', functionalityCode: '' });
+      console.log("🚀 Calling openFunctionalityVote...");
+      const result = await contracts.openFunctionalityVote(
+        newFunctionality.ceremonyCode,
+        newFunctionality.functionalityCode,
+      );
+      console.log("✅ Session opened successfully:", result);
+
+      setNewFunctionality({ ceremonyCode: "", functionalityCode: "" });
+      notification.success("Voting session opened successfully!");
+
       // Refresh data after successful session opening
-      setTimeout(() => refetch(), 2000);
+      setTimeout(() => {
+        console.log("🔄 Refreshing data...");
+        refetch();
+      }, 2000);
     } catch (error) {
-      console.error('Failed to open voting session:', error);
+      console.error("❌ Failed to open voting session:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+
+      // More specific error messages
+      const errorMessage = (error as any)?.message || (error as any)?.reason || "Unknown error";
+      if (errorMessage.includes("CeremonyNotFound")) {
+        notification.error(`Ceremony "${newFunctionality.ceremonyCode}" not found. Please check the ceremony code.`);
+      } else if (errorMessage.includes("NotAuthorized")) {
+        notification.error("You are not authorized to open sessions for this ceremony");
+      } else if (errorMessage.includes("CeremonyNotStarted")) {
+        notification.error("Ceremony must be started before opening voting sessions");
+      } else {
+        notification.error(`Failed to open voting session: ${errorMessage}`);
+      }
     }
   };
 
   const handleCommitVote = async () => {
     if (!voteData.ceremonyCode.trim() || !voteData.sessionIndex.trim() || !voteData.voteValue.trim()) {
+      notification.error("Please fill in all fields");
       return;
     }
-    
+
+    // Check if the session exists in our data
+    const sessionExists = scrumPokerData?.functionalitySessions?.items?.some(
+      session =>
+        session.ceremonyCode === voteData.ceremonyCode &&
+        session.sessionIndex.toString() === voteData.sessionIndex &&
+        session.status === "opened",
+    );
+
+    if (!sessionExists) {
+      notification.error("Session not found or not active. Please select an active session from the list below.");
+      return;
+    }
+
     try {
       // For functionality votes, we need to generate a commit hash
       const salt = Math.random().toString(36).substring(2, 15);
       const voteValue = parseInt(voteData.voteValue);
-      
+
       // Create commit hash: keccak256(abi.encodePacked(voteValue, salt, msg.sender))
       const encoder = new TextEncoder();
       const data = encoder.encode(`${voteValue}${salt}${contracts.address}`);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const commit = '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      
+      const commit = "0x" + hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+
       // Store salt for later reveal (in real app, this should be stored securely)
       localStorage.setItem(`vote_salt_${voteData.ceremonyCode}_${voteData.sessionIndex}`, salt);
-      
-      await contracts.commitFunctionalityVote(
-        voteData.ceremonyCode, 
-        parseInt(voteData.sessionIndex), 
-        commit
-      );
-      
-      setVoteData({ ceremonyCode: '', sessionIndex: '', voteValue: '' });
+
+      await contracts.commitFunctionalityVote(voteData.ceremonyCode, parseInt(voteData.sessionIndex), commit);
+
+      setVoteData({ ceremonyCode: "", sessionIndex: "", voteValue: "" });
       // Refresh data after successful vote commit
       setTimeout(() => refetch(), 2000);
     } catch (error) {
-      console.error('Failed to commit vote:', error);
+      console.error("Failed to commit vote:", error);
     }
   };
 
@@ -361,14 +448,14 @@ const CeremonyManagementDashboard: NextPage = () => {
     if (!participantData.ceremonyCode.trim()) {
       return;
     }
-    
+
     try {
       await contracts.requestCeremonyEntry(participantData.ceremonyCode);
-      setParticipantData({ ceremonyCode: '' });
+      setParticipantData({ ceremonyCode: "" });
       // Refresh data after successful join
       setTimeout(() => refetch(), 2000);
     } catch (error) {
-      console.error('Failed to join ceremony:', error);
+      console.error("Failed to join ceremony:", error);
     }
   };
 
@@ -393,10 +480,19 @@ const CeremonyManagementDashboard: NextPage = () => {
               <label tabIndex={0} className="btn btn-ghost btn-circle">
                 <CogIcon className="w-5 h-5" />
               </label>
-              <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-                <li><Link href="/debug">Debug Contracts</Link></li>
-                <li><Link href="/blockexplorer">Block Explorer</Link></li>
-                <li><Link href="/dataview">Raw Data View</Link></li>
+              <ul
+                tabIndex={0}
+                className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+              >
+                <li>
+                  <Link href="/debug">Debug Contracts</Link>
+                </li>
+                <li>
+                  <Link href="/blockexplorer">Block Explorer</Link>
+                </li>
+                <li>
+                  <Link href="/dataview">Raw Data View</Link>
+                </li>
               </ul>
             </div>
           </div>
@@ -404,58 +500,58 @@ const CeremonyManagementDashboard: NextPage = () => {
 
         {/* Navigation Tabs */}
         <div className="tabs tabs-boxed justify-center mt-4 bg-transparent">
-          <button 
-            className={`tab tab-lg ${activeTab === 'dashboard' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('dashboard')}
+          <button
+            className={`tab tab-lg ${activeTab === "dashboard" ? "tab-active" : ""}`}
+            onClick={() => setActiveTab("dashboard")}
           >
             <ChartBarIcon className="w-4 h-4 mr-2" />
             Dashboard
           </button>
-          <button 
-            className={`tab tab-lg ${activeTab === 'create' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('create')}
+          <button
+            className={`tab tab-lg ${activeTab === "create" ? "tab-active" : ""}`}
+            onClick={() => setActiveTab("create")}
           >
             <PlusIcon className="w-4 h-4 mr-2" />
             Create
           </button>
-          <button 
-            className={`tab tab-lg ${activeTab === 'ceremonies' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('ceremonies')}
+          <button
+            className={`tab tab-lg ${activeTab === "ceremonies" ? "tab-active" : ""}`}
+            onClick={() => setActiveTab("ceremonies")}
           >
             <DocumentTextIcon className="w-4 h-4 mr-2" />
             Ceremonies
           </button>
-          <button 
-            className={`tab tab-lg ${activeTab === 'voting' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('voting')}
+          <button
+            className={`tab tab-lg ${activeTab === "voting" ? "tab-active" : ""}`}
+            onClick={() => setActiveTab("voting")}
           >
             <CheckCircleIcon className="w-4 h-4 mr-2" />
             Voting
           </button>
-          <button 
-            className={`tab tab-lg ${activeTab === 'participants' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('participants')}
+          <button
+            className={`tab tab-lg ${activeTab === "participants" ? "tab-active" : ""}`}
+            onClick={() => setActiveTab("participants")}
           >
             <UserGroupIcon className="w-4 h-4 mr-2" />
             Participants
           </button>
-          <button 
-            className={`tab tab-lg ${activeTab === 'nft' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('nft')}
+          <button
+            className={`tab tab-lg ${activeTab === "nft" ? "tab-active" : ""}`}
+            onClick={() => setActiveTab("nft")}
           >
             <TrophyIcon className="w-4 h-4 mr-2" />
             NFT
           </button>
-          <button 
-            className={`tab tab-lg ${activeTab === 'admin' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('admin')}
+          <button
+            className={`tab tab-lg ${activeTab === "admin" ? "tab-active" : ""}`}
+            onClick={() => setActiveTab("admin")}
           >
             <CogIcon className="w-4 h-4 mr-2" />
             Admin
           </button>
-          <button 
-            className={`tab tab-lg ${activeTab === 'approvals' ? 'tab-active' : ''}`}
-            onClick={() => setActiveTab('approvals')}
+          <button
+            className={`tab tab-lg ${activeTab === "approvals" ? "tab-active" : ""}`}
+            onClick={() => setActiveTab("approvals")}
           >
             <CheckCircleIcon className="w-4 h-4 mr-2" />
             Approvals
@@ -474,7 +570,9 @@ const CeremonyManagementDashboard: NextPage = () => {
           {error && (
             <div className="alert alert-error mb-6">
               <span>Failed to load data. Make sure Ponder server is running on port 42069.</span>
-              <button className="btn btn-sm" onClick={() => refetch()}>Retry</button>
+              <button className="btn btn-sm" onClick={() => refetch()}>
+                Retry
+              </button>
             </div>
           )}
 
@@ -485,8 +583,47 @@ const CeremonyManagementDashboard: NextPage = () => {
           )}
 
           {/* Dashboard Tab */}
-          {activeTab === 'dashboard' && (
+          {activeTab === "dashboard" && (
             <div className="space-y-6">
+              {/* Instructions Card */}
+              <div className="card bg-base-200 shadow-xl">
+                <div className="card-body">
+                  <h2 className="card-title text-primary">
+                    <DocumentTextIcon className="w-6 h-6" />
+                    How to Start Voting Sessions
+                  </h2>
+                  <div className="space-y-4">
+                    <div className="alert alert-info">
+                      <DocumentTextIcon className="w-5 h-5" />
+                      <div>
+                        <h3 className="font-bold">Step-by-step guide:</h3>
+                        <ol className="list-decimal list-inside mt-2 space-y-1">
+                          <li>First, create a ceremony in the &quot;Create&quot; tab</li>
+                          <li>Start the ceremony using the &quot;Start Ceremony&quot; button</li>
+                          <li>Once started, you can create voting sessions using the form below</li>
+                          <li>Use ceremony ID (e.g., &quot;CEREMONY_1&quot;) and functionality code (e.g., &quot;FEATURE_A&quot;)</li>
+                        </ol>
+                      </div>
+                    </div>
+
+                    {scrumPokerData?.ceremonys?.items?.length === 0 && (
+                      <div className="alert alert-warning">
+                        <ClockIcon className="w-5 h-5" />
+                        <span>No ceremonies found. Create your first ceremony to get started!</span>
+                      </div>
+                    )}
+
+                    {scrumPokerData?.ceremonys?.items?.filter(c => c.status === "started")?.length === 0 &&
+                      scrumPokerData?.ceremonys?.items?.length > 0 && (
+                        <div className="alert alert-warning">
+                          <PlayIcon className="w-5 h-5" />
+                          <span>No started ceremonies found. Start a ceremony to create voting sessions!</span>
+                        </div>
+                      )}
+                  </div>
+                </div>
+              </div>
+
               {/* Stats Overview */}
               {stats && (
                 <div className="stats shadow w-full">
@@ -519,33 +656,33 @@ const CeremonyManagementDashboard: NextPage = () => {
 
               {/* Quick Actions */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <button 
+                <button
                   className="btn btn-primary btn-lg"
-                  onClick={() => setActiveTab('create')}
+                  onClick={() => setActiveTab("create")}
                   disabled={!connectedAddress}
                 >
                   <PlusIcon className="w-6 h-6" />
                   Create Ceremony
                 </button>
-                <button 
+                <button
                   className="btn btn-secondary btn-lg"
-                  onClick={() => setActiveTab('voting')}
+                  onClick={() => setActiveTab("voting")}
                   disabled={!connectedAddress}
                 >
                   <CheckCircleIcon className="w-6 h-6" />
                   Vote Now
                 </button>
-                <button 
+                <button
                   className="btn btn-accent btn-lg"
-                  onClick={() => setActiveTab('participants')}
+                  onClick={() => setActiveTab("participants")}
                   disabled={!connectedAddress}
                 >
                   <UserGroupIcon className="w-6 h-6" />
                   Join Ceremony
                 </button>
-                <button 
+                <button
                   className="btn btn-info btn-lg"
-                  onClick={() => setActiveTab('nft')}
+                  onClick={() => setActiveTab("nft")}
                   disabled={!connectedAddress}
                 >
                   <TrophyIcon className="w-6 h-6" />
@@ -554,12 +691,15 @@ const CeremonyManagementDashboard: NextPage = () => {
               </div>
 
               {/* Recent Activity */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="card bg-base-100 shadow-xl">
                   <div className="card-body">
                     <h3 className="card-title">Recent Ceremonies</h3>
-                    {scrumPokerData?.ceremonys?.items?.slice(0, 5).map((ceremony) => (
-                      <div key={ceremony.id} className="flex items-center justify-between border-b pb-2 last:border-b-0">
+                    {scrumPokerData?.ceremonys?.items?.slice(0, 5).map(ceremony => (
+                      <div
+                        key={ceremony.id}
+                        className="flex items-center justify-between border-b pb-2 last:border-b-0"
+                      >
                         <div>
                           <p className="font-semibold">{ceremony.title}</p>
                           <p className="text-sm opacity-70">{ceremony.id}</p>
@@ -575,22 +715,88 @@ const CeremonyManagementDashboard: NextPage = () => {
 
                 <div className="card bg-base-100 shadow-xl">
                   <div className="card-body">
+                    <h3 className="card-title">Your Active Ceremonies</h3>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm opacity-70">
+                        {(() => {
+                          const activeCeremonies = scrumPokerData?.ceremonys?.items?.filter(
+                            c => c.creator && connectedAddress && 
+                                 c.creator.toLowerCase() === connectedAddress.toLowerCase() && 
+                                 c.status === "started",
+                          ) || [];
+                          console.log("DEBUG - Connected Address:", connectedAddress);
+                          console.log("DEBUG - All ceremonies:", scrumPokerData?.ceremonys?.items);
+                          console.log("DEBUG - Active ceremonies for user:", activeCeremonies);
+                          return activeCeremonies.length;
+                        })()}{" "}
+                        ready for sessions
+                      </span>
+                      <button className="btn btn-xs btn-outline" onClick={() => setActiveTab("ceremonies")}>
+                        Manage
+                      </button>
+                    </div>
+                    {scrumPokerData?.ceremonys?.items
+                      ?.filter(c => c.creator && connectedAddress && 
+                                   c.creator.toLowerCase() === connectedAddress.toLowerCase() && 
+                                   c.status === "started")
+                      ?.slice(0, 3)
+                      .map(ceremony => (
+                        <div
+                          key={ceremony.id}
+                          className="flex items-center justify-between border-b pb-2 last:border-b-0"
+                        >
+                          <div>
+                            <p className="font-semibold">{ceremony.title}</p>
+                            <p className="text-sm opacity-70">{ceremony.id}</p>
+                          </div>
+                          <div className="text-right">
+                            <button
+                              className="btn btn-xs btn-primary"
+                              onClick={() => {
+                                const functionalityCode = prompt("Enter functionality code to vote on:");
+                                if (functionalityCode) {
+                                  contracts.openFunctionalityVote(ceremony.id, functionalityCode);
+                                }
+                              }}
+                            >
+                              Start Session
+                            </button>
+                          </div>
+                        </div>
+                      )) || <p className="text-center opacity-70">No active ceremonies</p>}
+                  </div>
+                </div>
+
+                <div className="card bg-base-100 shadow-xl">
+                  <div className="card-body">
                     <h3 className="card-title">Active Voting Sessions</h3>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm opacity-70">
+                        {scrumPokerData?.functionalitySessions?.items?.filter(s => s.status === "opened")?.length || 0}{" "}
+                        active sessions
+                      </span>
+                      <button className="btn btn-xs btn-outline" onClick={() => setActiveTab("voting")}>
+                        Vote Now
+                      </button>
+                    </div>
                     {scrumPokerData?.functionalitySessions?.items
-                      ?.filter(s => s.status === 'opened')
+                      ?.filter(s => s.status === "opened")
                       ?.slice(0, 5)
-                      .map((session) => (
-                      <div key={session.id} className="flex items-center justify-between border-b pb-2 last:border-b-0">
-                        <div>
-                          <p className="font-semibold">{session.functionalityCode}</p>
-                          <p className="text-sm opacity-70">Session #{session.sessionIndex.toString()}</p>
+                      .map(session => (
+                        <div
+                          key={session.id}
+                          className="flex items-center justify-between border-b pb-2 last:border-b-0"
+                        >
+                          <div>
+                            <p className="font-semibold">{session.functionalityCode}</p>
+                            <p className="text-sm opacity-70">Session #{session.sessionIndex.toString()}</p>
+                          </div>
+                          <div className="text-right">
+                            {getStatusBadge(session.status)}
+                            <p className="text-xs mt-1">{formatTimestamp(session.openedAt)}</p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          {getStatusBadge(session.status)}
-                          <p className="text-xs mt-1">{formatTimestamp(session.openedAt)}</p>
-                        </div>
-                      </div>
-                    )) || <p className="text-center opacity-70">No active sessions</p>}
+                      )) || <p className="text-center opacity-70">No active sessions</p>}
                   </div>
                 </div>
               </div>
@@ -598,22 +804,22 @@ const CeremonyManagementDashboard: NextPage = () => {
           )}
 
           {/* Create Tab */}
-          {activeTab === 'create' && (
+          {activeTab === "create" && (
             <div className="max-w-2xl mx-auto">
               <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                   <h2 className="card-title text-2xl mb-6">Create New Ceremony</h2>
-                  
+
                   <div className="form-control w-full">
                     <label className="label">
                       <span className="label-text">Ceremony Title</span>
                     </label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter ceremony title" 
+                    <input
+                      type="text"
+                      placeholder="Enter ceremony title"
                       className="input input-bordered w-full"
                       value={newCeremony.title}
-                      onChange={(e) => setNewCeremony({...newCeremony, title: e.target.value})}
+                      onChange={e => setNewCeremony({ ...newCeremony, title: e.target.value })}
                     />
                   </div>
 
@@ -621,16 +827,16 @@ const CeremonyManagementDashboard: NextPage = () => {
                     <label className="label">
                       <span className="label-text">Description (Optional)</span>
                     </label>
-                    <textarea 
-                      className="textarea textarea-bordered h-24" 
+                    <textarea
+                      className="textarea textarea-bordered h-24"
                       placeholder="Enter ceremony description"
                       value={newCeremony.description}
-                      onChange={(e) => setNewCeremony({...newCeremony, description: e.target.value})}
+                      onChange={e => setNewCeremony({ ...newCeremony, description: e.target.value })}
                     ></textarea>
                   </div>
 
                   <div className="card-actions justify-end mt-6">
-                    <button 
+                    <button
                       className="btn btn-primary"
                       onClick={handleCreateCeremony}
                       disabled={!connectedAddress || !newCeremony.title}
@@ -646,38 +852,65 @@ const CeremonyManagementDashboard: NextPage = () => {
               <div className="card bg-base-100 shadow-xl mt-6">
                 <div className="card-body">
                   <h2 className="card-title text-2xl mb-6">Open Voting Session</h2>
-                  
+
+                  {/* Available Ceremonies */}
+                  {(scrumPokerData?.ceremonys?.items?.filter(c => c.status === "started")?.length || 0) > 0 && (
+                    <div className="alert alert-success mb-4">
+                      <CheckCircleIcon className="w-5 h-5" />
+                      <div>
+                        <h3 className="font-bold">Available Started Ceremonies:</h3>
+                        <div className="mt-2 space-y-1">
+                          {scrumPokerData?.ceremonys?.items
+                            ?.filter(c => c.status === "started")
+                            ?.map(ceremony => (
+                              <div key={ceremony.id} className="text-sm">
+                                <strong>{ceremony.id}</strong> - {ceremony.title}
+                              </div>
+                            )) || <p className="text-sm opacity-70">No started ceremonies available</p>}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="form-control w-full">
                     <label className="label">
                       <span className="label-text">Ceremony Code</span>
                     </label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter ceremony code" 
+                    <input
+                      type="text"
+                      placeholder="Enter ceremony code (e.g., CEREMONY_1)"
                       className="input input-bordered w-full"
                       value={newFunctionality.ceremonyCode}
-                      onChange={(e) => setNewFunctionality({...newFunctionality, ceremonyCode: e.target.value})}
+                      onChange={e => setNewFunctionality({ ...newFunctionality, ceremonyCode: e.target.value })}
                     />
+                    <label className="label">
+                      <span className="label-text-alt">Use the ceremony ID from the list above</span>
+                    </label>
                   </div>
 
                   <div className="form-control w-full">
                     <label className="label">
                       <span className="label-text">Functionality Code</span>
                     </label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter functionality to vote on" 
+                    <input
+                      type="text"
+                      placeholder="Enter functionality to vote on (e.g., FEATURE_A)"
                       className="input input-bordered w-full"
                       value={newFunctionality.functionalityCode}
-                      onChange={(e) => setNewFunctionality({...newFunctionality, functionalityCode: e.target.value})}
+                      onChange={e => setNewFunctionality({ ...newFunctionality, functionalityCode: e.target.value })}
                     />
+                    <label className="label">
+                      <span className="label-text-alt">Describe the feature or story to estimate</span>
+                    </label>
                   </div>
 
                   <div className="card-actions justify-end mt-6">
-                    <button 
+                    <button
                       className="btn btn-secondary"
                       onClick={handleOpenSession}
-                      disabled={!connectedAddress || !newFunctionality.ceremonyCode || !newFunctionality.functionalityCode}
+                      disabled={
+                        !connectedAddress || !newFunctionality.ceremonyCode || !newFunctionality.functionalityCode
+                      }
                     >
                       <PlayIcon className="w-4 h-4 mr-2" />
                       Open Session
@@ -689,7 +922,7 @@ const CeremonyManagementDashboard: NextPage = () => {
           )}
 
           {/* Ceremonies Tab */}
-          {activeTab === 'ceremonies' && (
+          {activeTab === "ceremonies" && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-3xl font-bold">All Ceremonies</h2>
@@ -705,16 +938,13 @@ const CeremonyManagementDashboard: NextPage = () => {
                   <DocumentTextIcon className="w-16 h-16 mx-auto opacity-50 mb-4" />
                   <p className="text-xl opacity-70">No ceremonies found</p>
                   <p className="mt-2">Create your first ceremony to get started!</p>
-                  <button 
-                    className="btn btn-primary mt-4"
-                    onClick={() => setActiveTab('create')}
-                  >
+                  <button className="btn btn-primary mt-4" onClick={() => setActiveTab("create")}>
                     Create Ceremony
                   </button>
                 </div>
               ) : (
                 <div className="grid gap-4">
-                  {scrumPokerData?.ceremonys?.items?.map((ceremony) => (
+                  {scrumPokerData?.ceremonys?.items?.map(ceremony => (
                     <div key={ceremony.id} className="card bg-base-100 shadow-xl">
                       <div className="card-body">
                         <div className="flex justify-between items-start">
@@ -722,7 +952,7 @@ const CeremonyManagementDashboard: NextPage = () => {
                             <h3 className="card-title text-xl">{ceremony.title}</h3>
                             <p className="text-sm opacity-70 mb-2">Code: {ceremony.id}</p>
                             {ceremony.description && <p className="mb-4">{ceremony.description}</p>}
-                            
+
                             <div className="grid grid-cols-2 gap-4">
                               <div>
                                 <p className="text-sm font-semibold">Creator:</p>
@@ -746,29 +976,51 @@ const CeremonyManagementDashboard: NextPage = () => {
                               )}
                             </div>
                           </div>
-                          
+
                           <div className="flex flex-col items-end gap-2">
                             {getStatusBadge(ceremony.status)}
-                            
-                            {connectedAddress === ceremony.creator && (
+
+                            {connectedAddress && ceremony.creator && 
+                             connectedAddress.toLowerCase() === ceremony.creator.toLowerCase() && (
                               <div className="flex gap-2">
-                                {ceremony.status === 'created' && (
-                                  <button 
-                                    className="btn btn-sm btn-success"
-                                    onClick={() => handleStartCeremony(1)}
-                                  >
+                                {(() => {
+                                  console.log(`DEBUG - Ceremony ${ceremony.id}:`, {
+                                    creator: ceremony.creator,
+                                    connectedAddress,
+                                    status: ceremony.status,
+                                    isCreator: connectedAddress.toLowerCase() === ceremony.creator.toLowerCase(),
+                                    isStarted: ceremony.status === "started"
+                                  });
+                                  return null;
+                                })()}
+                                {ceremony.status === "created" && (
+                                  <button className="btn btn-sm btn-success" onClick={() => handleStartCeremony(1)}>
                                     <PlayIcon className="w-3 h-3" />
                                     Start
                                   </button>
                                 )}
-                                {ceremony.status === 'started' && (
-                                  <button 
-                                    className="btn btn-sm btn-warning"
-                                    onClick={() => handleConcludeCeremony(ceremony.id)}
-                                  >
-                                    <StopIcon className="w-3 h-3" />
-                                    Conclude
-                                  </button>
+                                {ceremony.status === "started" && (
+                                  <>
+                                    <button
+                                      className="btn btn-sm btn-primary"
+                                      onClick={() => {
+                                        const functionalityCode = prompt("Enter functionality code to vote on:");
+                                        if (functionalityCode) {
+                                          contracts.openFunctionalityVote(ceremony.id, functionalityCode);
+                                        }
+                                      }}
+                                    >
+                                      <PlusIcon className="w-3 h-3" />
+                                      Start Session
+                                    </button>
+                                    <button
+                                      className="btn btn-sm btn-warning"
+                                      onClick={() => handleConcludeCeremony(ceremony.id)}
+                                    >
+                                      <StopIcon className="w-3 h-3" />
+                                      Conclude
+                                    </button>
+                                  </>
                                 )}
                               </div>
                             )}
@@ -783,23 +1035,43 @@ const CeremonyManagementDashboard: NextPage = () => {
           )}
 
           {/* Voting Tab */}
-          {activeTab === 'voting' && (
+          {activeTab === "voting" && (
             <div className="space-y-6">
               {/* Vote Form */}
-              <div className="card bg-base-100 shadow-xl max-w-2xl mx-auto">
+              <div className="card bg-base-100 shadow-xl max-w-2xl mx-auto vote-form">
                 <div className="card-body">
                   <h2 className="card-title text-2xl mb-6">Submit Vote</h2>
-                  
+
+                  <div className="alert alert-info mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      className="stroke-current shrink-0 w-6 h-6"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      ></path>
+                    </svg>
+                    <span>
+                      To vote, first make sure a voting session has been started for the ceremony. Click &quot;Vote on This
+                      Session&quot; from the active sessions below to auto-fill this form.
+                    </span>
+                  </div>
+
                   <div className="form-control w-full">
                     <label className="label">
                       <span className="label-text">Ceremony Code</span>
                     </label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter ceremony code" 
+                    <input
+                      type="text"
+                      placeholder="Enter ceremony code"
                       className="input input-bordered w-full"
                       value={voteData.ceremonyCode}
-                      onChange={(e) => setVoteData({...voteData, ceremonyCode: e.target.value})}
+                      onChange={e => setVoteData({ ...voteData, ceremonyCode: e.target.value })}
                     />
                   </div>
 
@@ -807,12 +1079,12 @@ const CeremonyManagementDashboard: NextPage = () => {
                     <label className="label">
                       <span className="label-text">Session Index</span>
                     </label>
-                    <input 
-                      type="number" 
-                      placeholder="Enter session index" 
+                    <input
+                      type="number"
+                      placeholder="Enter session index"
                       className="input input-bordered w-full"
                       value={voteData.sessionIndex}
-                      onChange={(e) => setVoteData({...voteData, sessionIndex: e.target.value})}
+                      onChange={e => setVoteData({ ...voteData, sessionIndex: e.target.value })}
                     />
                   </div>
 
@@ -821,11 +1093,11 @@ const CeremonyManagementDashboard: NextPage = () => {
                       <span className="label-text">Vote Value (Story Points)</span>
                     </label>
                     <div className="grid grid-cols-4 gap-2">
-                      {[1, 2, 3, 5, 8, 13, 21, 34].map((value) => (
+                      {[1, 2, 3, 5, 8, 13, 21, 34].map(value => (
                         <button
                           key={value}
-                          className={`btn ${voteData.voteValue === value.toString() ? 'btn-primary' : 'btn-outline'}`}
-                          onClick={() => setVoteData({...voteData, voteValue: value.toString()})}
+                          className={`btn ${voteData.voteValue === value.toString() ? "btn-primary" : "btn-outline"}`}
+                          onClick={() => setVoteData({ ...voteData, voteValue: value.toString() })}
                         >
                           {value}
                         </button>
@@ -834,10 +1106,12 @@ const CeremonyManagementDashboard: NextPage = () => {
                   </div>
 
                   <div className="card-actions justify-end mt-6">
-                    <button 
+                    <button
                       className="btn btn-primary"
                       onClick={handleCommitVote}
-                      disabled={!connectedAddress || !voteData.ceremonyCode || !voteData.sessionIndex || !voteData.voteValue}
+                      disabled={
+                        !connectedAddress || !voteData.ceremonyCode || !voteData.sessionIndex || !voteData.voteValue
+                      }
                     >
                       <CheckCircleIcon className="w-4 h-4 mr-2" />
                       Commit Vote
@@ -850,67 +1124,72 @@ const CeremonyManagementDashboard: NextPage = () => {
               <div>
                 <h3 className="text-2xl font-bold mb-4">Active Voting Sessions</h3>
                 {scrumPokerData?.functionalitySessions?.items
-                  ?.filter(s => s.status === 'opened')
-                  ?.map((session) => (
-                  <div key={session.id} className="card bg-base-100 shadow-xl mb-4">
-                    <div className="card-body">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="card-title">{session.functionalityCode}</h4>
-                          <p className="text-sm opacity-70">Session #{session.sessionIndex.toString()}</p>
-                          <p className="text-sm opacity-70">Ceremony: {session.ceremonyCode}</p>
+                  ?.filter(s => s.status === "opened")
+                  ?.map(session => (
+                    <div key={session.id} className="card bg-base-100 shadow-xl mb-4">
+                      <div className="card-body">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="card-title">{session.functionalityCode}</h4>
+                            <p className="text-sm opacity-70">Session #{session.sessionIndex.toString()}</p>
+                            <p className="text-sm opacity-70">Ceremony: {session.ceremonyCode}</p>
+                          </div>
+                          <div className="text-right">
+                            {getStatusBadge(session.status)}
+                            <p className="text-xs mt-1">{formatTimestamp(session.openedAt)}</p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          {getStatusBadge(session.status)}
-                          <p className="text-xs mt-1">{formatTimestamp(session.openedAt)}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="card-actions justify-end mt-4">
-                        <button 
-                          className="btn btn-primary btn-sm"
-                          onClick={() => {
-                            setVoteData({
-                              ceremonyCode: session.ceremonyCode,
-                              sessionIndex: session.sessionIndex.toString(),
-                              voteValue: ''
-                            });
-                          }}
-                        >
-                          Vote on This Session
-                        </button>
-                        <button 
-                          className="btn btn-secondary btn-sm"
-                          onClick={async () => {
-                            const salt = localStorage.getItem(`vote_salt_${session.ceremonyCode}_${session.sessionIndex}`);
-                            if (salt && voteData.voteValue) {
-                              try {
-                                await contracts.revealFunctionalityVote(
-                                  session.ceremonyCode,
-                                  Number(session.sessionIndex),
-                                  parseInt(voteData.voteValue),
-                                  salt
-                                );
-                                localStorage.removeItem(`vote_salt_${session.ceremonyCode}_${session.sessionIndex}`);
-                              } catch (error) {
-                                console.error('Failed to reveal vote:', error);
+
+                        <div className="card-actions justify-end mt-4">
+                          <button
+                            className="btn btn-primary btn-sm"
+                            onClick={() => {
+                              // Automatically use the session index from this session
+                              setVoteData({
+                                ceremonyCode: session.ceremonyCode,
+                                sessionIndex: session.sessionIndex.toString(),
+                                voteValue: "",
+                              });
+                              // Scroll to vote form
+                              document.querySelector(".vote-form")?.scrollIntoView({ behavior: "smooth" });
+                            }}
+                          >
+                            Vote on This Session
+                          </button>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={async () => {
+                              const salt = localStorage.getItem(
+                                `vote_salt_${session.ceremonyCode}_${session.sessionIndex}`,
+                              );
+                              if (salt && voteData.voteValue) {
+                                try {
+                                  await contracts.revealFunctionalityVote(
+                                    session.ceremonyCode,
+                                    Number(session.sessionIndex),
+                                    parseInt(voteData.voteValue),
+                                    salt,
+                                  );
+                                  localStorage.removeItem(`vote_salt_${session.ceremonyCode}_${session.sessionIndex}`);
+                                } catch (error) {
+                                  console.error("Failed to reveal vote:", error);
+                                }
                               }
-                            }
-                          }}
-                        >
-                          Reveal Vote
-                        </button>
+                            }}
+                          >
+                            Reveal Vote
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )) || <p className="text-center opacity-70">No active voting sessions</p>}
+                  )) || <p className="text-center opacity-70">No active voting sessions</p>}
               </div>
 
               {/* Recent Votes */}
               <div>
                 <h3 className="text-2xl font-bold mb-4">Recent Votes</h3>
                 <div className="grid gap-4">
-                  {scrumPokerData?.functionalityVotes?.items?.slice(0, 10).map((vote) => (
+                  {scrumPokerData?.functionalityVotes?.items?.slice(0, 10).map(vote => (
                     <div key={vote.id} className="card bg-base-100 shadow-xl">
                       <div className="card-body">
                         <div className="flex justify-between items-start">
@@ -938,28 +1217,28 @@ const CeremonyManagementDashboard: NextPage = () => {
           )}
 
           {/* Participants Tab */}
-          {activeTab === 'participants' && (
+          {activeTab === "participants" && (
             <div className="space-y-6">
               {/* Join Ceremony Form */}
               <div className="card bg-base-100 shadow-xl max-w-2xl mx-auto">
                 <div className="card-body">
                   <h2 className="card-title text-2xl mb-6">Join Ceremony</h2>
-                  
+
                   <div className="form-control w-full">
                     <label className="label">
                       <span className="label-text">Ceremony Code</span>
                     </label>
-                    <input 
-                      type="text" 
-                      placeholder="Enter ceremony code to join" 
+                    <input
+                      type="text"
+                      placeholder="Enter ceremony code to join"
                       className="input input-bordered w-full"
                       value={participantData.ceremonyCode}
-                      onChange={(e) => setParticipantData({...participantData, ceremonyCode: e.target.value})}
+                      onChange={e => setParticipantData({ ...participantData, ceremonyCode: e.target.value })}
                     />
                   </div>
 
                   <div className="card-actions justify-end mt-6">
-                    <button 
+                    <button
                       className="btn btn-primary"
                       onClick={handleJoinCeremony}
                       disabled={!connectedAddress || !participantData.ceremonyCode}
@@ -975,7 +1254,7 @@ const CeremonyManagementDashboard: NextPage = () => {
               <div>
                 <h3 className="text-2xl font-bold mb-4">All Participants</h3>
                 <div className="grid gap-4">
-                  {scrumPokerData?.ceremonyParticipants?.items?.map((participant) => (
+                  {scrumPokerData?.ceremonyParticipants?.items?.map(participant => (
                     <div key={participant.id} className="card bg-base-100 shadow-xl">
                       <div className="card-body">
                         <div className="flex justify-between items-center">
@@ -996,7 +1275,7 @@ const CeremonyManagementDashboard: NextPage = () => {
           )}
 
           {/* NFT Tab */}
-          {activeTab === 'nft' && (
+          {activeTab === "nft" && (
             <div className="space-y-6">
               <div className="text-center">
                 <TrophyIcon className="w-16 h-16 mx-auto mb-4" />
@@ -1012,19 +1291,16 @@ const CeremonyManagementDashboard: NextPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="stat">
                         <div className="stat-title">NFT Balance</div>
-                        <div className="stat-value">{contracts.nftBalance?.toString() || '0'}</div>
+                        <div className="stat-value">{contracts.nftBalance?.toString() || "0"}</div>
                       </div>
                       <div className="stat">
                         <div className="stat-title">Token ID</div>
-                        <div className="stat-value">{contracts.userToken?.toString() || 'None'}</div>
+                        <div className="stat-value">{contracts.userToken?.toString() || "None"}</div>
                       </div>
                       <div className="stat">
                         <div className="stat-title">Vesting Status</div>
-                        <div className={`stat-value ${contracts.isVested ? 'text-success' : 'text-warning'}`}>
-                          {contracts.userToken ? 
-                            (contracts.isVested ? 'Vested' : 'Pending') : 
-                            'No NFT'
-                          }
+                        <div className={`stat-value ${contracts.isVested ? "text-success" : "text-warning"}`}>
+                          {contracts.userToken ? (contracts.isVested ? "Vested" : "Pending") : "No NFT"}
                         </div>
                         {contracts.userToken && !contracts.isVested && contracts.vestingPeriod && (
                           <div className="stat-desc text-xs">
@@ -1033,7 +1309,7 @@ const CeremonyManagementDashboard: NextPage = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     {contracts.exchangeRate && (
                       <div className="mt-4">
                         <p className="text-sm opacity-70">
@@ -1052,8 +1328,8 @@ const CeremonyManagementDashboard: NextPage = () => {
                     <h3 className="card-title justify-center">Ceremony Creator</h3>
                     <p>Mint NFT for creating ceremonies and managing scrum poker sessions</p>
                     <div className="card-actions justify-center mt-4">
-                      <button 
-                        className="btn btn-primary" 
+                      <button
+                        className="btn btn-primary"
                         disabled={!connectedAddress || !contracts.exchangeRate}
                         onClick={() => contracts.purchaseNFT("Ceremony Creator", "https://example.com/creator-nft")}
                       >
@@ -1069,10 +1345,12 @@ const CeremonyManagementDashboard: NextPage = () => {
                     <h3 className="card-title justify-center">Active Participant</h3>
                     <p>Mint NFT for participating in ceremonies and voting sessions</p>
                     <div className="card-actions justify-center mt-4">
-                      <button 
-                        className="btn btn-secondary" 
+                      <button
+                        className="btn btn-secondary"
                         disabled={!connectedAddress || !contracts.exchangeRate}
-                        onClick={() => contracts.purchaseNFT("Active Participant", "https://example.com/participant-nft")}
+                        onClick={() =>
+                          contracts.purchaseNFT("Active Participant", "https://example.com/participant-nft")
+                        }
                       >
                         Mint Participant NFT
                       </button>
@@ -1086,8 +1364,8 @@ const CeremonyManagementDashboard: NextPage = () => {
                     <h3 className="card-title justify-center">Voting Champion</h3>
                     <p>Mint NFT for consistent voting and engagement</p>
                     <div className="card-actions justify-center mt-4">
-                      <button 
-                        className="btn btn-accent" 
+                      <button
+                        className="btn btn-accent"
                         disabled={!connectedAddress || !contracts.exchangeRate}
                         onClick={() => contracts.purchaseNFT("Voting Champion", "https://example.com/voter-nft")}
                       >
@@ -1104,23 +1382,25 @@ const CeremonyManagementDashboard: NextPage = () => {
                   <div className="card-body">
                     <h3 className="card-title">NFT Management</h3>
                     <p className="opacity-70 mb-4">
-                      You own NFT #{contracts.userToken.toString()}. 
+                      You own NFT #{contracts.userToken.toString()}.
                       {!contracts.isVested && " Your NFT is still in vesting period."}
                     </p>
-                    
+
                     <div className="flex gap-4">
-                      <button 
+                      <button
                         className="btn btn-outline"
-                        onClick={() => window.open(`https://opensea.io/assets/ethereum/${contracts.address}/${contracts.userToken}`, '_blank')}
+                        onClick={() =>
+                          window.open(
+                            `https://opensea.io/assets/ethereum/${contracts.address}/${contracts.userToken}`,
+                            "_blank",
+                          )
+                        }
                       >
                         View on OpenSea
                       </button>
-                      
+
                       {!contracts.isVested && (
-                        <button 
-                          className="btn btn-warning"
-                          onClick={() => contracts.refundNFT()}
-                        >
+                        <button className="btn btn-warning" onClick={() => contracts.refundNFT()}>
                           Refund NFT
                         </button>
                       )}
@@ -1139,10 +1419,12 @@ const CeremonyManagementDashboard: NextPage = () => {
                         <div key={i} className="card bg-base-200 shadow">
                           <div className="card-body text-center">
                             <TrophyIcon className="w-16 h-16 mx-auto mb-2 text-primary" />
-                            <h4 className="card-title text-sm justify-center">NFT #{contracts.userToken?.toString()}</h4>
+                            <h4 className="card-title text-sm justify-center">
+                              NFT #{contracts.userToken?.toString()}
+                            </h4>
                             <p className="text-xs opacity-70">ScrumPoker Badge</p>
                             <div className="badge badge-sm badge-primary mt-2">
-                              {contracts.isVested ? 'Vested' : 'Vesting'}
+                              {contracts.isVested ? "Vested" : "Vesting"}
                             </div>
                           </div>
                         </div>
@@ -1161,7 +1443,7 @@ const CeremonyManagementDashboard: NextPage = () => {
           )}
 
           {/* Admin Tab */}
-          {activeTab === 'admin' && (
+          {activeTab === "admin" && (
             <div className="space-y-6">
               <div className="text-center">
                 <CogIcon className="w-16 h-16 mx-auto mb-4" />
@@ -1176,26 +1458,28 @@ const CeremonyManagementDashboard: NextPage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="stat">
                       <div className="stat-title">Contract Status</div>
-                      <div className={`stat-value ${contracts.isPaused ? 'text-error' : 'text-success'}`}>
-                        {contracts.isPaused ? 'Paused' : 'Active'}
+                      <div className={`stat-value ${contracts.isPaused ? "text-error" : "text-success"}`}>
+                        {contracts.isPaused ? "Paused" : "Active"}
                       </div>
                     </div>
                     <div className="stat">
                       <div className="stat-title">Exchange Rate</div>
                       <div className="stat-value text-sm">
-                        {contracts.exchangeRate ? `${(Number(contracts.exchangeRate) / 1e18).toFixed(4)} ETH` : 'Loading...'}
+                        {contracts.exchangeRate
+                          ? `${(Number(contracts.exchangeRate) / 1e18).toFixed(4)} ETH`
+                          : "Loading..."}
                       </div>
                     </div>
                     <div className="stat">
                       <div className="stat-title">Vesting Period</div>
                       <div className="stat-value text-sm">
-                        {contracts.vestingPeriod ? `${Number(contracts.vestingPeriod) / 86400} days` : 'Loading...'}
+                        {contracts.vestingPeriod ? `${Number(contracts.vestingPeriod) / 86400} days` : "Loading..."}
                       </div>
                     </div>
                     <div className="stat">
                       <div className="stat-title">Your NFT</div>
                       <div className="stat-value text-sm">
-                        {contracts.userToken ? `#${contracts.userToken.toString()}` : 'None'}
+                        {contracts.userToken ? `#${contracts.userToken.toString()}` : "None"}
                       </div>
                     </div>
                   </div>
@@ -1209,14 +1493,14 @@ const CeremonyManagementDashboard: NextPage = () => {
                     <h3 className="card-title">Contract Management</h3>
                     <div className="space-y-4">
                       <div className="flex gap-2">
-                        <button 
+                        <button
                           className="btn btn-warning flex-1"
                           onClick={() => contracts.pauseContract()}
                           disabled={!connectedAddress || contracts.isPaused}
                         >
                           Pause Contract
                         </button>
-                        <button 
+                        <button
                           className="btn btn-success flex-1"
                           onClick={() => contracts.unpauseContract()}
                           disabled={!connectedAddress || !contracts.isPaused}
@@ -1224,14 +1508,12 @@ const CeremonyManagementDashboard: NextPage = () => {
                           Unpause Contract
                         </button>
                       </div>
-                      
+
                       <Link href="/debug" className="btn btn-outline w-full">
                         Debug Contracts
                       </Link>
-                      
-                      <button className="btn btn-outline w-full">
-                        Verify Contracts
-                      </button>
+
+                      <button className="btn btn-outline w-full">Verify Contracts</button>
                     </div>
                   </div>
                 </div>
@@ -1245,32 +1527,34 @@ const CeremonyManagementDashboard: NextPage = () => {
                         <label className="label">
                           <span className="label-text">New Exchange Rate (wei)</span>
                         </label>
-                        <input 
-                          type="text" 
-                          className="input input-bordered" 
+                        <input
+                          type="text"
+                          className="input input-bordered"
                           placeholder="Enter new rate in wei"
                           id="newExchangeRate"
                         />
                       </div>
-                      
-                      <button 
+
+                      <button
                         className="btn btn-primary w-full"
                         onClick={() => {
-                          const input = document.getElementById('newExchangeRate') as HTMLInputElement;
+                          const input = document.getElementById("newExchangeRate") as HTMLInputElement;
                           if (input.value) {
                             contracts.updateExchangeRate(input.value);
-                            input.value = '';
+                            input.value = "";
                           }
                         }}
                         disabled={!connectedAddress}
                       >
                         Update Exchange Rate
                       </button>
-                      
+
                       <div className="divider">Current Rate</div>
                       <div className="text-center">
                         <p className="text-2xl font-bold">
-                          {contracts.exchangeRate ? `${(Number(contracts.exchangeRate) / 1e18).toFixed(4)} ETH` : 'Loading...'}
+                          {contracts.exchangeRate
+                            ? `${(Number(contracts.exchangeRate) / 1e18).toFixed(4)} ETH`
+                            : "Loading..."}
                         </p>
                         <p className="text-sm opacity-70">per NFT</p>
                       </div>
@@ -1287,50 +1571,49 @@ const CeremonyManagementDashboard: NextPage = () => {
                         <label className="label">
                           <span className="label-text">Address</span>
                         </label>
-                        <input 
-                          type="text" 
-                          className="input input-bordered" 
-                          placeholder="0x..."
-                          id="roleAddress"
-                        />
+                        <input type="text" className="input input-bordered" placeholder="0x..." id="roleAddress" />
                       </div>
-                      
+
                       <div className="form-control">
                         <label className="label">
                           <span className="label-text">Role</span>
                         </label>
                         <select className="select select-bordered" id="roleSelect">
                           <option value="">Select role</option>
-                          <option value="0x0000000000000000000000000000000000000000000000000000000000000000">ADMIN_ROLE</option>
-                          <option value="0x1234567890123456789012345678901234567890123456789012345678901234">PRICE_UPDATER_ROLE</option>
+                          <option value="0x0000000000000000000000000000000000000000000000000000000000000000">
+                            ADMIN_ROLE
+                          </option>
+                          <option value="0x1234567890123456789012345678901234567890123456789012345678901234">
+                            PRICE_UPDATER_ROLE
+                          </option>
                         </select>
                       </div>
-                      
+
                       <div className="flex gap-2">
-                        <button 
+                        <button
                           className="btn btn-success flex-1"
                           onClick={() => {
-                            const addressInput = document.getElementById('roleAddress') as HTMLInputElement;
-                            const roleSelect = document.getElementById('roleSelect') as HTMLSelectElement;
+                            const addressInput = document.getElementById("roleAddress") as HTMLInputElement;
+                            const roleSelect = document.getElementById("roleSelect") as HTMLSelectElement;
                             if (addressInput.value && roleSelect.value) {
                               contracts.grantRole(roleSelect.value, addressInput.value);
-                              addressInput.value = '';
-                              roleSelect.value = '';
+                              addressInput.value = "";
+                              roleSelect.value = "";
                             }
                           }}
                           disabled={!connectedAddress}
                         >
                           Grant Role
                         </button>
-                        <button 
+                        <button
                           className="btn btn-error flex-1"
                           onClick={() => {
-                            const addressInput = document.getElementById('roleAddress') as HTMLInputElement;
-                            const roleSelect = document.getElementById('roleSelect') as HTMLSelectElement;
+                            const addressInput = document.getElementById("roleAddress") as HTMLInputElement;
+                            const roleSelect = document.getElementById("roleSelect") as HTMLSelectElement;
                             if (addressInput.value && roleSelect.value) {
                               contracts.revokeRole(roleSelect.value, addressInput.value);
-                              addressInput.value = '';
-                              roleSelect.value = '';
+                              addressInput.value = "";
+                              roleSelect.value = "";
                             }
                           }}
                           disabled={!connectedAddress}
@@ -1350,24 +1633,24 @@ const CeremonyManagementDashboard: NextPage = () => {
                       <button className="btn btn-outline w-full" onClick={() => refetch()}>
                         Refresh All Data
                       </button>
-                      
-                      <button 
+
+                      <button
                         className="btn btn-outline w-full"
                         onClick={() => {
                           const data = JSON.stringify(scrumPokerData, null, 2);
-                          const blob = new Blob([data], { type: 'application/json' });
+                          const blob = new Blob([data], { type: "application/json" });
                           const url = URL.createObjectURL(blob);
-                          const a = document.createElement('a');
+                          const a = document.createElement("a");
                           a.href = url;
-                          a.download = 'scrumpoker-data.json';
+                          a.download = "scrumpoker-data.json";
                           a.click();
                           URL.revokeObjectURL(url);
                         }}
                       >
                         Export Data
                       </button>
-                      
-                      <button 
+
+                      <button
                         className="btn btn-warning w-full"
                         onClick={() => {
                           localStorage.clear();
@@ -1376,12 +1659,14 @@ const CeremonyManagementDashboard: NextPage = () => {
                       >
                         Clear Cache
                       </button>
-                      
+
                       <div className="divider">Network Info</div>
                       <div className="text-sm space-y-1">
                         <div className="flex justify-between">
                           <span>Ponder URL:</span>
-                          <span className="text-right">{process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069"}</span>
+                          <span className="text-right">
+                            {process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069"}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span>Network:</span>
@@ -1389,7 +1674,7 @@ const CeremonyManagementDashboard: NextPage = () => {
                         </div>
                         <div className="flex justify-between">
                           <span>Last Update:</span>
-                          <span>{stats ? formatTimestamp(stats.lastUpdated) : 'N/A'}</span>
+                          <span>{stats ? formatTimestamp(stats.lastUpdated) : "N/A"}</span>
                         </div>
                       </div>
                     </div>
@@ -1400,13 +1685,11 @@ const CeremonyManagementDashboard: NextPage = () => {
           )}
 
           {/* Approvals Tab */}
-          {activeTab === 'approvals' && (
+          {activeTab === "approvals" && (
             <div className="space-y-6">
               <div className="text-center">
                 <h2 className="text-3xl font-bold">Ceremony Approval Dashboard</h2>
-                <p className="text-gray-600 mt-2">
-                  Manage participation requests for your ceremonies
-                </p>
+                <p className="text-gray-600 mt-2">Manage participation requests for your ceremonies</p>
               </div>
 
               {!connectedAddress ? (
@@ -1421,10 +1704,13 @@ const CeremonyManagementDashboard: NextPage = () => {
                       <h3 className="card-title">Debug Information</h3>
                       <div className="text-sm space-y-2">
                         <div>Total Ceremonies: {scrumPokerData?.ceremonys?.items?.length || 0}</div>
-                        <div>User Ceremonies: {scrumPokerData?.ceremonys?.items?.filter(c => c.creator === connectedAddress)?.length || 0}</div>
+                        <div>
+                          User Ceremonies:{" "}
+                          {scrumPokerData?.ceremonys?.items?.filter(c => c.creator === connectedAddress)?.length || 0}
+                        </div>
                         <div>Approval Requests: {scrumPokerData?.ceremonyApprovalRequests?.items?.length || 0}</div>
                         <div>Connected Address: {connectedAddress}</div>
-                        
+
                         {/* Show ceremony IDs for debugging */}
                         <div className="mt-4">
                           <h4 className="font-semibold">Available Ceremonies:</h4>
@@ -1434,13 +1720,14 @@ const CeremonyManagementDashboard: NextPage = () => {
                             </div>
                           ))}
                         </div>
-                        
+
                         {/* Show approval requests for debugging */}
                         <div className="mt-4">
                           <h4 className="font-semibold">Approval Requests:</h4>
                           {scrumPokerData?.ceremonyApprovalRequests?.items?.map(request => (
                             <div key={request.id} className="text-xs">
-                              ID: {request.id} | Ceremony: {request.ceremonyCode} | Participant: {request.participant} | Status: {request.status}
+                              ID: {request.id} | Ceremony: {request.ceremonyCode} | Participant: {request.participant} |
+                              Status: {request.status}
                             </div>
                           ))}
                         </div>
@@ -1448,7 +1735,7 @@ const CeremonyManagementDashboard: NextPage = () => {
                     </div>
                   </div>
 
-                  <ApprovalDashboard 
+                  <ApprovalDashboard
                     approvalRequests={scrumPokerData?.ceremonyApprovalRequests?.items || []}
                     ceremonies={scrumPokerData?.ceremonys?.items || []}
                     onRefresh={refetch}
